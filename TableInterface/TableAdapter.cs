@@ -11,6 +11,8 @@ namespace TableInterface
 {
     public class TableAdapter
     {
+        private CloudTable postsTable;
+
         public void Init()
         {
             // Retrieve the storage account from the connection string.
@@ -21,10 +23,10 @@ namespace TableInterface
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             // Retrieve a reference to the table.
-            CloudTable table = tableClient.GetTableReference("people");
+            postsTable = tableClient.GetTableReference("Posts");
 
             // Create the table if it doesn't exist.
-            table.CreateIfNotExists();
+            postsTable.CreateIfNotExists();
         }
     }
 }
