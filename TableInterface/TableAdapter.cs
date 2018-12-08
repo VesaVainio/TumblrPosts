@@ -11,9 +11,10 @@ namespace TableInterface
 
         public void Init()
         {
+            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+
             // Retrieve the storage account from the connection string.
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             // Create the table client.
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();

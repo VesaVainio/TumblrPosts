@@ -8,15 +8,16 @@ namespace QueueInterface
     {
         public void Init()
         {
-            // Retrieve storage account from connection string.
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
+            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+
+            // Retrieve the storage account from the connection string.
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             // Create the queue client.
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             // Retrieve a reference to a container.
-            CloudQueue queue = queueClient.GetQueueReference("PicsToDownload");
+            CloudQueue queue = queueClient.GetQueueReference("pics-to-download");
 
             // Create the queue if it doesn't already exist
             queue.CreateIfNotExists();

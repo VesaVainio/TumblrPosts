@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using QueueInterface;
+using TableInterface;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
@@ -16,6 +18,8 @@ namespace Functions
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "getposts/{blogname}")]HttpRequestMessage req, 
             string blogname, TraceWriter log)
         {
+            FunctionUtilities.ConfigureBindingRedirects();
+
             BlogPosts blogPosts = null;
             using (HttpClient httpClient = new HttpClient())
             {
@@ -28,6 +32,12 @@ namespace Functions
                     blogPosts = tumblrResponse.Response;
                 }
             }
+
+            TableAdapter tableAdapter = new TableAdapter();
+            tableAdapter.Init();
+
+            QueueAdapter queueAdapter = new QueueAdapter();
+            queueAdapter.Init();
 
             log.Info("C# HTTP trigger function processed a request.");
 

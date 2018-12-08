@@ -16,7 +16,7 @@ namespace TumblrPics.Model.Tumblr
         public string Source_title { get; set; }
         public string Source_url { get; set; }
         public int Note_count { get; set; }
-        public int Reblog_key { get; set; }
+        public string Reblog_key { get; set; }
 
         public string Title { get; set; }
         public string Body { get; set; }
