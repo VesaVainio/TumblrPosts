@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableInterface", "TableInte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Model\Model.csproj", "{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueInterface", "QueueInterface\QueueInterface.csproj", "{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Model\Model.csproj" />
+    <ProjectReference Include="..\QueueInterface\QueueInterface.csproj" />
     <ProjectReference Include="..\TableInterface\TableInterface.csproj" />
   </ItemGroup>
   <ItemGroup>
