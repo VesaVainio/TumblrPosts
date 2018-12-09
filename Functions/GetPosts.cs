@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
+using QueueInterface.Messages;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model.Tumblr;
@@ -41,8 +42,11 @@ namespace Functions
             tableAdapter.Init();
             tableAdapter.InsertPost(postEntity);
 
+            PhotosToDownload photosToDownloadMessage = new PhotosToDownload(testPost);
+
             QueueAdapter queueAdapter = new QueueAdapter();
             queueAdapter.Init();
+            queueAdapter.SendPhotosToDownload(photosToDownloadMessage);
 
             log.Info("C# HTTP trigger function processed a request.");
 
