@@ -10,7 +10,7 @@ namespace TumblrPics.Model.Tumblr
 
         public PostType Type { get; set; }
 
-        public long TimeStamp { get; set; }
+        public long Timestamp { get; set; }
         public DateTime Date { get; set; }
         public string[] Tags { get; set; }
         public string Source_title { get; set; }
@@ -21,6 +21,10 @@ namespace TumblrPics.Model.Tumblr
         public string Title { get; set; }
         public string Body { get; set; }
         public string Format { get; set; }
+
+        public string Caption { get; set; }
+        public int Width { get; set; }
+        public int Heigth { get; set; }
 
         public Photo[] Photos { get; set; }
     }

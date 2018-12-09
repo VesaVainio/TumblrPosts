@@ -2,6 +2,7 @@
 using Microsoft.Azure; // Namespace for CloudConfigurationManager
 using Microsoft.Azure.Storage; // Namespace for StorageAccounts
 using Microsoft.Azure.CosmosDB.Table; // Namespace for Table storage types
+using TableInterface.Entities;
 
 namespace TableInterface
 {
@@ -24,6 +25,12 @@ namespace TableInterface
 
             // Create the table if it doesn't exist.
             postsTable.CreateIfNotExists();
+        }
+
+        public void InsertPost(PostEntity postEntity)
+        {
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(postEntity);
+            postsTable.Execute(insertOrMergeOperation);
         }
     }
 }

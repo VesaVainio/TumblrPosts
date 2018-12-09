@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
 using TableInterface;
+using TableInterface.Entities;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
@@ -33,8 +34,12 @@ namespace Functions
                 }
             }
 
+            Post testPost = blogPosts.Posts.First(x => x.Type == PostType.Photo);
+            PostEntity postEntity = new PostEntity(testPost);
+
             TableAdapter tableAdapter = new TableAdapter();
             tableAdapter.Init();
+            tableAdapter.InsertPost(postEntity);
 
             QueueAdapter queueAdapter = new QueueAdapter();
             queueAdapter.Init();

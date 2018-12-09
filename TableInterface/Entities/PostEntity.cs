@@ -1,0 +1,66 @@
+﻿using Microsoft.Azure.CosmosDB.Table;
+using Newtonsoft.Json;
+using System;
+using System.Linq;
+using TumblrPics.Model.Tumblr;
+
+namespace TableInterface.Entities
+{
+    public class PostEntity : TableEntity
+    {
+        public string PostUrl { get; set; }
+
+        public string Type { get; set; }
+
+        public long TumblrTimestamp { get; set; }
+        public DateTime Date { get; set; }
+        public string Tags { get; set; }
+        public string SourceTitle { get; set; }
+        public string SourceUrl { get; set; }
+        public int NoteCount { get; set; }
+        public string ReblogKey { get; set; }
+
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public string Format { get; set; }
+
+        public string Caption { get; set; }
+        public int? Width { get; set; }
+        public int? Heigth { get; set; }
+
+        public int PhotosCount { get; set; }
+        public string PhotoOriginalUrls { get; set; }
+        public string PhotosJson { get; set; }
+
+        public bool PicsDownloadQueued;
+        public bool PicsDownloadCompleted;
+
+        public PostEntity(Post tumblrPost)
+        {
+            PartitionKey = tumblrPost.Blog_name;
+            RowKey = tumblrPost.Id.ToString();
+
+            PostUrl = tumblrPost.Post_url;
+            Type = tumblrPost.Type.ToString();
+            TumblrTimestamp = tumblrPost.Timestamp;
+            Date = tumblrPost.Date;
+            Tags = tumblrPost.Tags == null || tumblrPost.Tags.Length == 0 ? null : string.Join(";", tumblrPost.Tags);
+            SourceTitle = string.IsNullOrEmpty(tumblrPost.Source_title) ? null : tumblrPost.Source_title;
+            SourceUrl = string.IsNullOrEmpty(tumblrPost.Source_url) ? null : tumblrPost.Source_url;
+            NoteCount = tumblrPost.Note_count;
+            ReblogKey = string.IsNullOrEmpty(tumblrPost.Reblog_key) ? null : tumblrPost.Reblog_key;
+
+            Title = tumblrPost.Title;
+            Format = tumblrPost.Format;
+            Body = string.IsNullOrEmpty(tumblrPost.Body) ? null : JsonConvert.ToString(tumblrPost.Body);
+
+            Caption = string.IsNullOrEmpty(tumblrPost.Caption) ? null : tumblrPost.Caption;
+            Width = tumblrPost.Width > 0 ? tumblrPost.Width : (int?)null;
+            Heigth = tumblrPost.Heigth > 0 ? tumblrPost.Heigth : (int?)null;
+
+            PhotosCount = tumblrPost.Photos.Length;
+            PhotoOriginalUrls = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : string.Join(";", tumblrPost.Photos.Select(x => x.Alt_sizes[0].Url));
+            PhotosJson = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Photos);
+        }
+    }
+}
