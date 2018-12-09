@@ -1,29 +1,21 @@
-﻿
-using Microsoft.Azure; // Namespace for CloudConfigurationManager
-using Microsoft.Azure.Storage; // Namespace for StorageAccounts
-using Microsoft.Azure.CosmosDB.Table; // Namespace for Table storage types
+﻿using Microsoft.Azure;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.CosmosDB.Table;
 using TableInterface.Entities;
 
 namespace TableInterface
 {
-    public class TableAdapter
+    public class PostsTableAdapter
     {
         private CloudTable postsTable;
 
         public void Init()
         {
             string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
-
-            // Retrieve the storage account from the connection string.
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-
-            // Create the table client.
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
-            // Retrieve a reference to the table.
             postsTable = tableClient.GetTableReference("Posts");
-
-            // Create the table if it doesn't exist.
             postsTable.CreateIfNotExists();
         }
 

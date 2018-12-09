@@ -53,11 +53,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlobAdapter.cs" />
+    <Compile Include="Messages\Dto\PostIndexInfo.cs" />
     <Compile Include="Messages\PhotosToDownload.cs" />
     <Compile Include="QueueAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

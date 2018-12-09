@@ -124,7 +124,8 @@
   <ItemGroup>
     <Compile Include="Entities\PhotoIndexEntity.cs" />
     <Compile Include="Entities\PostEntity.cs" />
-    <Compile Include="TableAdapter.cs" />
+    <Compile Include="PhotoIndexTableAdapter.cs" />
+    <Compile Include="PostsTableAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +136,10 @@
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}</Project>
       <Name>Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QueueInterface\QueueInterface.csproj">
+      <Project>{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}</Project>
+      <Name>QueueInterface</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

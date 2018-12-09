@@ -38,7 +38,7 @@ namespace Functions
             Post testPost = blogPosts.Posts.First(x => x.Type == PostType.Photo);
             PostEntity postEntity = new PostEntity(testPost);
 
-            TableAdapter tableAdapter = new TableAdapter();
+            PostsTableAdapter tableAdapter = new PostsTableAdapter();
             tableAdapter.Init();
             tableAdapter.InsertPost(postEntity);
 
