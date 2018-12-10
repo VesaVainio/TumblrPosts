@@ -24,5 +24,31 @@ namespace TableInterface
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(postEntity);
             postsTable.Execute(insertOrMergeOperation);
         }
+
+        public PostEntity GetPost(string blogName, string postId)
+        {
+            TableOperation retrieveJeffSmith = TableOperation.Retrieve<PostEntity>(blogName, postId);
+            TableResult result = postsTable.Execute(retrieveJeffSmith);
+            if (result.HttpStatusCode == 200)
+            {
+                PostEntity entity = (PostEntity)result.Result;
+                return entity;
+            }
+
+            return null;
+        }
+
+        public void MarkAsDownloaded(string blogName, string postId)
+        {
+            DownloadCompleteEntity entity = new DownloadCompleteEntity
+            {
+                PartitionKey = blogName,
+                RowKey = postId,
+                PicsDownloadLevel = 2
+            };
+
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            postsTable.Execute(insertOrMergeOperation);
+        }
     }
 }

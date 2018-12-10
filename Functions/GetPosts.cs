@@ -21,32 +21,37 @@ namespace Functions
             string blogname, TraceWriter log)
         {
             FunctionUtilities.ConfigureBindingRedirects();
+            log.Info("BindingRedirects configured.");
+
+            PostProcessor postProcessor = new PostProcessor();
+            postProcessor.Init();
+
+            log.Info("PostProcessor initialized.");
 
             BlogPosts blogPosts = null;
             using (HttpClient httpClient = new HttpClient())
             {
-                string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
-                string url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?api_key=" + apiKey;
-                HttpResponseMessage response = await httpClient.GetAsync(url);
-                if (response.IsSuccessStatusCode)
+                long totalCount = 0;
+                int offset = 0;
+                do
                 {
-                    TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
-                    blogPosts = tumblrResponse.Response;
-                }
+                    string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
+                    string url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?offset=" + offset + "&api_key=" + apiKey;
+                    log.Info("Making request to: " + url);
+                    HttpResponseMessage response = await httpClient.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
+                        blogPosts = tumblrResponse.Response;
+
+                        totalCount = blogPosts.Blog.Posts;
+                        offset += 20;
+
+                        postProcessor.ProcessPosts(blogPosts.Posts, log);
+                    }
+
+                } while (offset < totalCount);
             }
-
-            Post testPost = blogPosts.Posts.First(x => x.Type == PostType.Photo);
-            PostEntity postEntity = new PostEntity(testPost);
-
-            PostsTableAdapter tableAdapter = new PostsTableAdapter();
-            tableAdapter.Init();
-            tableAdapter.InsertPost(postEntity);
-
-            PhotosToDownload photosToDownloadMessage = new PhotosToDownload(testPost);
-
-            QueueAdapter queueAdapter = new QueueAdapter();
-            queueAdapter.Init();
-            queueAdapter.SendPhotosToDownload(photosToDownloadMessage);
 
             log.Info("C# HTTP trigger function processed a request.");
 

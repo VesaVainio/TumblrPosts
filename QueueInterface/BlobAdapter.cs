@@ -19,9 +19,10 @@ namespace BlobInterface
             cloudBlobClient = storageAccount.CreateCloudBlobClient();
         }
 
-        public async Task<Uri> UploadBlob(PhotoUrlHelper urlHelper, byte[] bytes)
+        public async Task<Uri> UploadBlob(PhotoUrlHelper urlHelper, byte[] bytes, bool isOriginal)
         {
-            CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference("server-" + urlHelper.Server.ToString());
+            string prefix = isOriginal ? "orig-" : "thumb-";
+            CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference(prefix + urlHelper.Server.ToString());
             if (!await serverContainer.ExistsAsync())
             {
                 await serverContainer.CreateAsync();

@@ -8,5 +8,6 @@ namespace TumblrPics.Model.Tumblr
         public long Updated { get; set; }
         public String Name { get; set; }
         public String Description { get; set; }
+        public long Posts { get; set; }
     }
 }

@@ -31,28 +31,27 @@ namespace Functions
             PhotoIndexTableAdapter photoIndexTableAdapter = new PhotoIndexTableAdapter();
             photoIndexTableAdapter.Init();
 
+            PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
+            postsTableAdapter.Init();
+
             using (HttpClient httpClient = new HttpClient())
             {
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
                 foreach (Photo photo in photosToDownload.Photos)
                 {
+                    bool isOriginal = true;
                     foreach (AltSize altSize in photo.Alt_sizes)
                     {
-                        if (downloadSizes.Contains(altSize.Width))
+                        PhotoUrlHelper urlHelper = PhotoUrlHelper.Parse(altSize.Url);
+
+                        if (urlHelper != null && downloadSizes.Contains(urlHelper.Size))
                         {
                             byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
-                            PhotoUrlHelper urlHelper = PhotoUrlHelper.Parse(altSize.Url);
-                            if (urlHelper != null)
-                            {
-                                Uri blobUri = await blobAdapter.UploadBlob(urlHelper, photoBytes);
-                                photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), altSize.Width, altSize.Height);
-                            }
-                            else
-                            {
-                                log.Info($"Unable to parse photo URL {altSize.Url}");
-                            }
-                        }
+                            Uri blobUri = await blobAdapter.UploadBlob(urlHelper, photoBytes, isOriginal);
+                            photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), altSize.Width, altSize.Height);
+                            isOriginal = false;
+                        } 
                         else
                         {
                             log.Info($"Skipping AltSize with width {altSize.Width}");
@@ -60,6 +59,8 @@ namespace Functions
                     }
                 }
             }
+
+            postsTableAdapter.MarkAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId);
         }
     }
 }
