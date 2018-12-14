@@ -52,14 +52,14 @@ namespace Functions
                                 byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
                                 if (photoBytes.Length > 0)
                                 {
-                                    Uri blobUri = await blobAdapter.UploadBlob(urlHelper, photoBytes, isOriginal);
-                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), altSize.Width, altSize.Height);
+                                    Uri blobUri = await blobAdapter.UploadPhotoBlob(urlHelper, photoBytes, isOriginal);
+                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), urlHelper.Size, altSize.Width, altSize.Height);
                                     isOriginal = false;
                                 }
                             }
                             else
                             {
-                                log.Info($"Skipping AltSize with width {altSize.Width}");
+                                //log.Info($"Skipping AltSize with width {altSize.Width}");
                             }
                         }
                     }

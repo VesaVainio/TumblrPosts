@@ -119,7 +119,10 @@
     <Compile Include="BlobAdapter.cs" />
     <Compile Include="Messages\Dto\PostIndexInfo.cs" />
     <Compile Include="Messages\PhotosToDownload.cs" />
-    <Compile Include="QueueAdapter.cs" />
+    <Compile Include="Messages\PostsToProcess.cs" />
+    <Compile Include="Messages\VideoToDownload.cs" />
+    <Compile Include="PostsToProcessQueueAdapter.cs" />
+    <Compile Include="MediaToDownloadQueueAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

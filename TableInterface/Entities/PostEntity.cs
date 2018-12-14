@@ -19,6 +19,8 @@ namespace TableInterface.Entities
         public string SourceUrl { get; set; }
         public int NoteCount { get; set; }
         public string ReblogKey { get; set; }
+        public string Reblog { get; set; }
+        public string Trail { get; set; }
 
         public string Title { get; set; }
         public string Body { get; set; }
@@ -31,6 +33,9 @@ namespace TableInterface.Entities
         public int PhotosCount { get; set; }
         public string PhotoOriginalUrls { get; set; }
         public string PhotosJson { get; set; }
+
+        public string VideoUrl { get; set; }
+        public string VideoType { get; set; }
 
         public int PicsDownloadLevel { get; set; }
 
@@ -50,18 +55,23 @@ namespace TableInterface.Entities
             SourceUrl = string.IsNullOrEmpty(tumblrPost.Source_url) ? null : tumblrPost.Source_url;
             NoteCount = tumblrPost.Note_count;
             ReblogKey = string.IsNullOrEmpty(tumblrPost.Reblog_key) ? null : tumblrPost.Reblog_key;
+            //Reblog = tumblrPost.Reblog == null ? null : JsonConvert.SerializeObject(tumblrPost.Reblog);
+            Trail = tumblrPost.Trail == null || tumblrPost.Trail.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Trail); 
 
             Title = tumblrPost.Title;
             Format = tumblrPost.Format;
             Body = string.IsNullOrEmpty(tumblrPost.Body) ? null : JsonConvert.ToString(tumblrPost.Body);
 
-            Caption = string.IsNullOrEmpty(tumblrPost.Caption) ? null : tumblrPost.Caption;
+            //Caption = string.IsNullOrEmpty(tumblrPost.Caption) ? null : tumblrPost.Caption;
             Width = tumblrPost.Width > 0 ? tumblrPost.Width : (int?)null;
             Heigth = tumblrPost.Heigth > 0 ? tumblrPost.Heigth : (int?)null;
 
             PhotosCount = tumblrPost.Photos == null ? 0 : tumblrPost.Photos.Length;
             PhotoOriginalUrls = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : string.Join(";", tumblrPost.Photos.Select(x => x.Alt_sizes[0].Url));
             PhotosJson = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Photos);
+
+            VideoUrl = tumblrPost.Video_url;
+            VideoType = tumblrPost.Video_type;
         }
     }
 }

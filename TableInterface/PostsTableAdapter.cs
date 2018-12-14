@@ -13,7 +13,7 @@ namespace TableInterface
         public void Init(TraceWriter log)
         {
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
+            //log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 

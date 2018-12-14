@@ -19,7 +19,7 @@ namespace BlobInterface
             cloudBlobClient = storageAccount.CreateCloudBlobClient();
         }
 
-        public async Task<Uri> UploadBlob(PhotoUrlHelper urlHelper, byte[] bytes, bool isOriginal)
+        public async Task<Uri> UploadPhotoBlob(PhotoUrlHelper urlHelper, byte[] bytes, bool isOriginal)
         {
             string prefix = isOriginal ? "orig-" : "thumb-";
             CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference(prefix + urlHelper.Server.ToString());
@@ -35,7 +35,7 @@ namespace BlobInterface
                 await serverContainer.SetPermissionsAsync(permissions);
             }
 
-            string path = GetPath(urlHelper);
+            string path = GetPhotoPath(urlHelper);
 
             CloudBlockBlob blob = serverContainer.GetBlockBlobReference(path);
 
@@ -44,7 +44,38 @@ namespace BlobInterface
             return blob.Uri;
         }
 
-        private string GetPath(PhotoUrlHelper urlHelper)
+        public async Task<Uri> UploadVideoBlob(byte[] videoBytes, string blogName, string videoUrl)
+        {
+            CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference(blogName.ToLower());
+            if (!await serverContainer.ExistsAsync())
+            {
+                await serverContainer.CreateAsync();
+
+                // Set the permissions so the blobs are public. 
+                BlobContainerPermissions permissions = new BlobContainerPermissions
+                {
+                    PublicAccess = BlobContainerPublicAccessType.Blob
+                };
+                await serverContainer.SetPermissionsAsync(permissions);
+            }
+
+            VideoUrlHelper videoUrlHelper = VideoUrlHelper.Parse(videoUrl);
+
+            CloudBlockBlob blob;
+            if (videoUrlHelper != null)
+            {
+                blob = serverContainer.GetBlockBlobReference(videoUrlHelper.FileName.ToLower());
+            } else
+            {
+                blob = serverContainer.GetBlockBlobReference(Guid.NewGuid().ToString().ToLower());
+            }
+
+            await blob.UploadFromByteArrayAsync(videoBytes, 0, videoBytes.Length);
+
+            return blob.Uri;
+        }
+
+        private string GetPhotoPath(PhotoUrlHelper urlHelper)
         {
             StringBuilder sb = new StringBuilder();
 

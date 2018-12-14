@@ -41,6 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tumblr\Player.cs" />
+    <Compile Include="Tumblr\TrailPost.cs" />
+    <Compile Include="Tumblr\TrailBlog.cs" />
+    <Compile Include="Tumblr\Trail.cs" />
+    <Compile Include="Tumblr\Reblog.cs" />
+    <Compile Include="VideoUrlHelper.cs" />
     <Compile Include="PhotoUrlHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tumblr\AltSize.cs" />

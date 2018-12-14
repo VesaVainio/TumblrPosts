@@ -1,6 +1,7 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using QueueInterface;
 using System;
 using System.Configuration;
 using System.Net;
@@ -19,8 +20,11 @@ namespace Functions
             FunctionUtilities.ConfigureBindingRedirects();
             log.Info("BindingRedirects configured.");
 
-            PostProcessor postProcessor = new PostProcessor();
-            postProcessor.Init(log);
+            PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
+            postsToProcessQueueAdapter.Init(log);
+
+            //PostProcessor postProcessor = new PostProcessor();
+            //postProcessor.Init(log);
 
             log.Info("PostProcessor initialized.");
 
@@ -51,7 +55,8 @@ namespace Functions
 
                         totalCount += likes.Liked_posts.Count;
 
-                        postProcessor.ProcessPosts(likes.Liked_posts, log);
+                        postsToProcessQueueAdapter.SendPostsToProcess(likes.Liked_posts, blogname);
+                        //postProcessor.ProcessPosts(likes.Liked_posts, log);
                     }
                     else
                     {

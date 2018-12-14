@@ -20,9 +20,9 @@ namespace TableInterface
             photoIndexTable.CreateIfNotExists();
         }
 
-        public void InsertPhotoIndex(PostIndexInfo indexInfo, string uri, int width, int heigth)
+        public void InsertPhotoIndex(PostIndexInfo indexInfo, string uri, int nominalSize, int width, int heigth)
         {
-            PhotoIndexEntity photoIndexEntity = new PhotoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate)
+            PhotoIndexEntity photoIndexEntity = new PhotoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate, nominalSize)
             {
                 Width = width,
                 Height = heigth,

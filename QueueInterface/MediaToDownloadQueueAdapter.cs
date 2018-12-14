@@ -7,21 +7,24 @@ using System.Configuration;
 
 namespace QueueInterface
 {
-    public class QueueAdapter
+    public class MediaToDownloadQueueAdapter
     {
         CloudQueue photosToDownloadQueue;
+        CloudQueue videoToDownloadQueue;
 
         public void Init(TraceWriter log)
         {
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
+            //log.Info("MediaToDownloadQueueAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             photosToDownloadQueue = queueClient.GetQueueReference("photos-to-download");
-
             photosToDownloadQueue.CreateIfNotExists();
+
+            videoToDownloadQueue = queueClient.GetQueueReference("video-to-download");
+            videoToDownloadQueue.CreateIfNotExists();
         }
 
         public void SendPhotosToDownload(PhotosToDownload photosToDownload)
@@ -29,6 +32,13 @@ namespace QueueInterface
             string jsonMessage = JsonConvert.SerializeObject(photosToDownload);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             photosToDownloadQueue.AddMessage(message);
+        }
+
+        public void SendVideoToDownload(VideoToDownload videoToDownload)
+        {
+            string jsonMessage = JsonConvert.SerializeObject(videoToDownload);
+            CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
+            videoToDownloadQueue.AddMessage(message);
         }
     }
 }

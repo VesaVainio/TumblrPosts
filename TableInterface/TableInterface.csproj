@@ -193,8 +193,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\DownloadCompleteEntity.cs" />
+    <Compile Include="Entities\LikeIndexEntity.cs" />
+    <Compile Include="Entities\VideoIndexEntity.cs" />
     <Compile Include="Entities\PhotoIndexEntity.cs" />
     <Compile Include="Entities\PostEntity.cs" />
+    <Compile Include="LikeIndexTableAdapter.cs" />
+    <Compile Include="VideoIndexTableAdapter.cs" />
     <Compile Include="PhotoIndexTableAdapter.cs" />
     <Compile Include="PostsTableAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

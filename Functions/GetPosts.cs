@@ -1,6 +1,7 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using QueueInterface;
 using System.Configuration;
 using System.Net;
 using System.Net.Http;
@@ -18,8 +19,11 @@ namespace Functions
             FunctionUtilities.ConfigureBindingRedirects();
             log.Info("BindingRedirects configured.");
 
-            PostProcessor postProcessor = new PostProcessor();
-            postProcessor.Init(log);
+            PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
+            postsToProcessQueueAdapter.Init(log);
+
+            //PostProcessor postProcessor = new PostProcessor();
+            //postProcessor.Init(log);
 
             log.Info("PostProcessor initialized.");
 
@@ -28,9 +32,9 @@ namespace Functions
             {
                 long totalCount = 0;
                 int offset = 0;
+                string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
                 do
                 {
-                    string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
                     string url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?offset=" + offset + "&api_key=" + apiKey;
                     log.Info("Making request to: " + url);
                     HttpResponseMessage response = await httpClient.GetAsync(url);
@@ -42,7 +46,11 @@ namespace Functions
                         totalCount = blogPosts.Blog.Posts;
                         offset += 20;
 
-                        postProcessor.ProcessPosts(blogPosts.Posts, log);
+                        if (blogPosts.Posts != null && blogPosts.Posts.Count > 0)
+                        {
+                            postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
+                        }
+                        //postProcessor.ProcessPosts(blogPosts.Posts, log);
                     }
 
                 } while (offset < totalCount);

@@ -13,29 +13,39 @@ namespace Functions
 {
     public class PostProcessor
     {
-        private PostsTableAdapter tableAdapter;
-        private QueueAdapter queueAdapter;
+        private PostsTableAdapter postsTableAdapter;
+        private LikeIndexTableAdapter LikeIndexTableAdapter;
+        private MediaToDownloadQueueAdapter queueAdapter;
 
         public void Init(TraceWriter log)
         {
             log.Info("Starting PostProcessor init");
 
-            tableAdapter = new PostsTableAdapter();
-            tableAdapter.Init(log);
+            postsTableAdapter = new PostsTableAdapter();
+            postsTableAdapter.Init(log);
 
-            queueAdapter = new QueueAdapter();
+            LikeIndexTableAdapter = new LikeIndexTableAdapter();
+            LikeIndexTableAdapter.Init();
+
+            queueAdapter = new MediaToDownloadQueueAdapter();
             queueAdapter.Init(log);
         }
 
-        public void ProcessPosts(IEnumerable<Post> posts, TraceWriter log)
+        public void ProcessPosts(IEnumerable<Post> posts, TraceWriter log, string likerBlogname = null)
         {
             foreach (Post post in posts)
             {
-                PostEntity postEntityInTable = tableAdapter.GetPost(post.Blog_name, post.Id.ToString());
+                PostEntity postEntityInTable = postsTableAdapter.GetPost(post.Blog_name, post.Id.ToString());
 
                 PostEntity postEntityFromTumblr = new PostEntity(post);
 
-                tableAdapter.InsertPost(postEntityFromTumblr);
+                postsTableAdapter.InsertPost(postEntityFromTumblr);
+
+                if (likerBlogname != null && post.Liked_Timestamp.HasValue)
+                {
+                    LikeIndexTableAdapter.InsertLikeIndex(likerBlogname, post.Liked_Timestamp.ToString(), post.Blog_name, post.Id.ToString(), post.Reblog_key);
+                }
+
                 log.Info("Post " + post.Blog_name + "/" + post.Id + " inserted to table");
 
                 if (postEntityFromTumblr.PhotosCount > 0)
@@ -56,6 +66,12 @@ namespace Functions
                     {
                         log.Info("Photos already downloaded");
                     }
+                }
+
+                if (!string.IsNullOrEmpty(post.Video_url))
+                {
+                    VideoToDownload videoToDownload = new VideoToDownload(post);
+                    queueAdapter.SendVideoToDownload(videoToDownload);
                 }
 
                 if (!string.IsNullOrEmpty(post.Body))
