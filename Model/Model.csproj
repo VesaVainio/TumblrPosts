@@ -46,6 +46,9 @@
     <Compile Include="Tumblr\AltSize.cs" />
     <Compile Include="Tumblr\Blog.cs" />
     <Compile Include="Tumblr\BlogPosts.cs" />
+    <Compile Include="Tumblr\Link.cs" />
+    <Compile Include="Tumblr\Links.cs" />
+    <Compile Include="Tumblr\Likes.cs" />
     <Compile Include="Tumblr\Meta.cs" />
     <Compile Include="Tumblr\Photo.cs" />
     <Compile Include="Tumblr\Post.cs" />

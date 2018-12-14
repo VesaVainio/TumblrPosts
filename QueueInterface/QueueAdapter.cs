@@ -1,8 +1,9 @@
-﻿using Microsoft.Azure;
+﻿using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
+using System.Configuration;
 
 namespace QueueInterface
 {
@@ -10,9 +11,10 @@ namespace QueueInterface
     {
         CloudQueue photosToDownloadQueue;
 
-        public void Init()
+        public void Init(TraceWriter log)
         {
-            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+            string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
+            log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();

@@ -1,6 +1,7 @@
-﻿using Microsoft.Azure;
+﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
-using Microsoft.Azure.CosmosDB.Table;
+using Microsoft.Azure.WebJobs.Host;
+using System.Configuration;
 using TableInterface.Entities;
 
 namespace TableInterface
@@ -9,9 +10,10 @@ namespace TableInterface
     {
         private CloudTable postsTable;
 
-        public void Init()
+        public void Init(TraceWriter log)
         {
-            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+            string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
+            log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 

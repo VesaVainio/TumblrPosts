@@ -1,8 +1,8 @@
-﻿using Microsoft.Azure;
+﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
-using Microsoft.Azure.CosmosDB.Table;
-using TableInterface.Entities;
 using QueueInterface.Messages.Dto;
+using System.Configuration;
+using TableInterface.Entities;
 
 namespace TableInterface
 {
@@ -12,7 +12,7 @@ namespace TableInterface
 
         public void Init()
         {
-            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+            string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 

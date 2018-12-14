@@ -1,15 +1,10 @@
-using System.Configuration;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using QueueInterface;
-using QueueInterface.Messages;
-using TableInterface;
-using TableInterface.Entities;
+using System.Configuration;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
@@ -24,7 +19,7 @@ namespace Functions
             log.Info("BindingRedirects configured.");
 
             PostProcessor postProcessor = new PostProcessor();
-            postProcessor.Init();
+            postProcessor.Init(log);
 
             log.Info("PostProcessor initialized.");
 
