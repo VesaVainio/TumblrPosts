@@ -17,7 +17,6 @@ namespace TableInterface
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             likeIndexTable = tableClient.GetTableReference("LikeIndex");
-            likeIndexTable.CreateIfNotExists();
         }
 
         public void InsertLikeIndex(string blogName, string likedTimestamp, string likedBlogname, string likedPostId, string reblogKey)

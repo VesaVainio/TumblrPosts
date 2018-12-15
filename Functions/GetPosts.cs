@@ -16,7 +16,7 @@ namespace Functions
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "getposts/{blogname}")]HttpRequestMessage req, 
             string blogname, TraceWriter log)
         {
-            FunctionUtilities.ConfigureBindingRedirects();
+            Startup.Init();
             log.Info("BindingRedirects configured.");
 
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();

@@ -17,7 +17,6 @@ namespace TableInterface
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             videoIndexTable = tableClient.GetTableReference("VideoIndex");
-            videoIndexTable.CreateIfNotExists();
         }
 
         public void InsertVideoIndex(PostIndexInfo indexInfo, string uri, string originalUri, string videoType, int bytes, int duration)

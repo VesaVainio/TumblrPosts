@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
 using System.Configuration;
+using TumblrPics.Model;
 
 namespace QueueInterface
 {
@@ -12,21 +13,18 @@ namespace QueueInterface
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
         CloudQueue photosToDownloadQueue;
-        CloudQueue videoToDownloadQueue;
+        CloudQueue videosToDownloadQueue;
 
         public void Init(TraceWriter log)
         {
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            //log.Info("MediaToDownloadQueueAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
-            photosToDownloadQueue = queueClient.GetQueueReference("photos-to-download");
-            photosToDownloadQueue.CreateIfNotExists();
+            photosToDownloadQueue = queueClient.GetQueueReference(Constants.PhotosToDownloadQueueName);
 
-            videoToDownloadQueue = queueClient.GetQueueReference("video-to-download");
-            videoToDownloadQueue.CreateIfNotExists();
+            videosToDownloadQueue = queueClient.GetQueueReference(Constants.VideosToDownloadQueueName);
         }
 
         public void SendPhotosToDownload(PhotosToDownload photosToDownload)
@@ -36,11 +34,11 @@ namespace QueueInterface
             photosToDownloadQueue.AddMessage(message);
         }
 
-        public void SendVideoToDownload(VideoToDownload videoToDownload)
+        public void SendVideosToDownload(VideosToDownload videoToDownload)
         {
             string jsonMessage = JsonConvert.SerializeObject(videoToDownload, JsonSerializerSettings);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
-            videoToDownloadQueue.AddMessage(message);
+            videosToDownloadQueue.AddMessage(message);
         }
     }
 }

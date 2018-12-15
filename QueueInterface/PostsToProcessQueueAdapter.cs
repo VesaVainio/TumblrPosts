@@ -19,19 +19,15 @@ namespace QueueInterface
         public void Init(TraceWriter log)
         {
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            //log.Info("PostsToProcessQueueAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             postsToProcessQueue = queueClient.GetQueueReference("posts-to-process");
-
-            postsToProcessQueue.CreateIfNotExists();
         }
 
         public void SendPostsToProcess(IEnumerable<Post> posts, string likerBlogName = null)
         {
-
             PostsToProcess postsToProcess = new PostsToProcess
             {
                 Posts = posts.ToArray(),

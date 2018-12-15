@@ -4,7 +4,7 @@ namespace TumblrPics.Model
 {
     public class PhotoUrlHelper
     {
-        private static Regex photoUrlRegex = new Regex(@"^https://(?<server>\d+).media.tumblr.com/((?<container>[0-9a-f]+)/){0,1}tumblr_(?<name>[0-9a-zA-Z]+)_(?<size>\d+).(?<extension>[0-9a-zA-Z]+)$");
+        private static Regex photoUrlRegex = new Regex(@"^https://(?<server>\d+).media.tumblr.com/((?<container>[0-9a-f]+)/){0,1}tumblr_(?<name>[_\-\.0-9a-zA-Z]+)_(?<size>\d+).(?<extension>[0-9a-zA-Z]+)$");
 
         public int Server { get; private set; }
         public string Container { get; private set; }

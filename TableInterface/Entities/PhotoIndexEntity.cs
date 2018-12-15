@@ -12,10 +12,10 @@ namespace TableInterface.Entities
         public string PostId { get; set; }
         public DateTime PostDate { get; set; }
 
-        public PhotoIndexEntity(string blogName, string postId, DateTime postDate, int nominalSize)
+        public PhotoIndexEntity(string blogName, string postId, DateTime postDate, string name, int size)
         {
             PartitionKey = blogName;
-            RowKey = postDate.ToString("yyyyMMddHHmmss-" + postId + "-" + nominalSize);
+            RowKey = postDate.ToString("yyyyMMddHHmmss") + "-" + postId + "-" + name.ToLower() + "-" + size;
             PostId = postId;
             PostDate = postDate;
         }

@@ -3,6 +3,7 @@ using Microsoft.Azure.Storage;
 using Microsoft.Azure.WebJobs.Host;
 using System.Configuration;
 using TableInterface.Entities;
+using TumblrPics.Model;
 
 namespace TableInterface
 {
@@ -13,12 +14,10 @@ namespace TableInterface
         public void Init(TraceWriter log)
         {
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            //log.Info("PostsTableAdapter/Init got connection string: " + connectionString);
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             postsTable = tableClient.GetTableReference("Posts");
-            postsTable.CreateIfNotExists();
         }
 
         public void InsertPost(PostEntity postEntity)
@@ -40,13 +39,28 @@ namespace TableInterface
             return null;
         }
 
-        public void MarkAsDownloaded(string blogName, string postId)
+        public void MarkPhotosAsDownloaded(string blogName, string postId, string[] photoUrls)
         {
-            DownloadCompleteEntity entity = new DownloadCompleteEntity
+            PhotoDownloadCompleteEntity entity = new PhotoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
-                PicsDownloadLevel = 2
+                PicsDownloadLevel = Constants.MaxPicsDownloadLevel,
+                PhotoBlobUrls = string.Join(";", photoUrls)
+            };
+
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            postsTable.Execute(insertOrMergeOperation);
+        }
+
+        public void MarkVideosAsDownloaded(string blogName, string postId, string[] videoUrls)
+        {
+            VideoDownloadCompleteEntity entity = new VideoDownloadCompleteEntity
+            {
+                PartitionKey = blogName,
+                RowKey = postId,
+                VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
+                VideoBlobUrls = string.Join(";", videoUrls)
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);

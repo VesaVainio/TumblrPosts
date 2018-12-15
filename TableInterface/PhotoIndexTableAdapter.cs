@@ -17,12 +17,11 @@ namespace TableInterface
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             photoIndexTable = tableClient.GetTableReference("PhotoIndex");
-            photoIndexTable.CreateIfNotExists();
         }
 
-        public void InsertPhotoIndex(PostIndexInfo indexInfo, string uri, int nominalSize, int width, int heigth)
+        public void InsertPhotoIndex(PostIndexInfo indexInfo, string uri, string name, int size, int width, int heigth)
         {
-            PhotoIndexEntity photoIndexEntity = new PhotoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate, nominalSize)
+            PhotoIndexEntity photoIndexEntity = new PhotoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate, name, size)
             {
                 Width = width,
                 Height = heigth,

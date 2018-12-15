@@ -124,6 +124,7 @@
     <Compile Include="PostsToProcessQueueAdapter.cs" />
     <Compile Include="MediaToDownloadQueueAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueueInterfaceStartup.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

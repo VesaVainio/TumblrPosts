@@ -2,8 +2,9 @@
 
 namespace TableInterface.Entities
 {
-    public class DownloadCompleteEntity : TableEntity
+    public class PhotoDownloadCompleteEntity : TableEntity
     {
         public int PicsDownloadLevel { get; set; }
+        public string PhotoBlobUrls { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace TableInterface.Entities
         public VideoIndexEntity(string blogName, string postId, DateTime postDate, int bytes)
         {
             PartitionKey = blogName;
-            RowKey = postDate.ToString("yyyyMMddHHmmss-" + postId + "-" + bytes);
+            RowKey = postDate.ToString("yyyyMMddHHmmss") + "-" + postId + "-" + bytes;
             PostId = postId;
             PostDate = postDate;
             Bytes = bytes;

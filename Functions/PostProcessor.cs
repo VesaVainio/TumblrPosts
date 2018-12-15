@@ -48,19 +48,14 @@ namespace Functions
 
                 log.Info("Post " + post.Blog_name + "/" + post.Id + " inserted to table");
 
-                if (postEntityFromTumblr.PhotosCount > 0)
+                PhotosToDownload photosToDownloadMessage = null;
+                VideosToDownload videosToDownload = null;
+
+                if (postEntityFromTumblr.PhotosJson != null)
                 {
-                    if (post.Photos == null)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
-                        log.Info("Photos is null!");
-                    }
-
-                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < 2)
-                    {
-                        PhotosToDownload photosToDownloadMessage = new PhotosToDownload(post);
-
-                        queueAdapter.SendPhotosToDownload(photosToDownloadMessage);
-                        log.Info("PhotosToDownload message published");
+                        photosToDownloadMessage = new PhotosToDownload(post);
                     }
                     else
                     {
@@ -70,38 +65,91 @@ namespace Functions
 
                 if (!string.IsNullOrEmpty(post.Video_url))
                 {
-                    VideoToDownload videoToDownload = new VideoToDownload(post);
-                    queueAdapter.SendVideoToDownload(videoToDownload);
+                    videosToDownload = new VideosToDownload(post)
+                    {
+                        VideoUrls = new[] { post.Video_url }
+                    };
                 }
 
                 if (!string.IsNullOrEmpty(post.Body))
                 {
                     HtmlDocument htmlDoc = new HtmlDocument();
                     htmlDoc.LoadHtml(post.Body);
-                    List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
-                    List<Photo> photos = new List<Photo>(imgNodes.Count);
-                    foreach (HtmlNode imgNode in imgNodes)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
-                        string url = imgNode.Attributes["src"].Value;
-                        Photo photo = GeneratePhotoFromSrc(url);
-                        photos.Add(photo);
-                    }
-                    if (photos.Count > 0)
-                    {
-                        Post fakePost = new Post
+                        List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
+                        List<Photo> photos = new List<Photo>(imgNodes.Count);
+                        foreach (HtmlNode imgNode in imgNodes)
                         {
-                            Blog_name = post.Blog_name,
-                            Id = post.Id,
-                            Date = post.Date,
-                            Reblog_key = post.Reblog_key,
-                            Photos = photos.ToArray()
-                        };
-
-                        PhotosToDownload photosToDownloadMessage = new PhotosToDownload(fakePost);
-
-                        queueAdapter.SendPhotosToDownload(photosToDownloadMessage);
-                        log.Info("PhotosToDownload message published based on IMG tags parsed from body");
+                            string url = imgNode.Attributes["src"].Value;
+                            Photo photo = GeneratePhotoFromSrc(url);
+                            if (photo != null)
+                            {
+                                photos.Add(photo);
+                            }
+                        }
+                        if (photos.Count > 0)
+                        {
+                            if (photosToDownloadMessage == null)
+                            {
+                                Post fakePost = new Post
+                                {
+                                    Blog_name = post.Blog_name,
+                                    Id = post.Id,
+                                    Date = post.Date,
+                                    Reblog_key = post.Reblog_key,
+                                    Photos = photos.ToArray()
+                                };
+                                photosToDownloadMessage = new PhotosToDownload(fakePost);
+                            }
+                            else
+                            {
+                                photosToDownloadMessage.Photos = photosToDownloadMessage.Photos.Concat(photos).ToArray();
+                            }
+                        }
                     }
+
+                    if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
+                    {
+                        List<HtmlNode> videoNodes = htmlDoc.DocumentNode.Descendants("video").ToList();
+                        List<string> videoUrls = new List<string>();
+                        foreach (HtmlNode videoNode in videoNodes)
+                        {
+                            HtmlNode sourceNode = videoNode.Descendants("source").FirstOrDefault();
+                            if (sourceNode != null)
+                            {
+                                string url = sourceNode.Attributes["src"].Value;
+                                videoUrls.Add(url);
+                            }
+                        }
+
+                        if (videoUrls.Count > 0)
+                        {
+                            if (videosToDownload == null)
+                            {
+                                videosToDownload = new VideosToDownload(post)
+                                {
+                                    VideoUrls = videoUrls.ToArray()
+                                };
+                            }
+                            else
+                            {
+                                videosToDownload.VideoUrls = videosToDownload.VideoUrls.Concat(videoUrls).ToArray();
+                            }
+                        }
+                    }
+                }
+
+                if (photosToDownloadMessage != null)
+                {
+                    queueAdapter.SendPhotosToDownload(photosToDownloadMessage);
+                    log.Info("PhotosToDownload message published");
+                }
+
+                if (videosToDownload != null)
+                {
+                    queueAdapter.SendVideosToDownload(videosToDownload);
+                    log.Info("VideosToDownload message published");
                 }
             }
         }

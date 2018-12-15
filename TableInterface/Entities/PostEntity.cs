@@ -30,14 +30,17 @@ namespace TableInterface.Entities
         public int? Width { get; set; }
         public int? Heigth { get; set; }
 
-        public int PhotosCount { get; set; }
         public string PhotoOriginalUrls { get; set; }
         public string PhotosJson { get; set; }
+        public string PhotoBlobUrls { get; set; } // separated by ;
 
         public string VideoUrl { get; set; }
+        public string VideoOriginalUrl { get; set; }
         public string VideoType { get; set; }
+        public string VideoBlobUrls { get; set; } // populated when the videos have been downloaded
 
-        public int PicsDownloadLevel { get; set; }
+        public int? PicsDownloadLevel { get; set; }
+        public int? VideosDownloadLevel { get; set; }
 
         public PostEntity() { }
 
@@ -66,7 +69,6 @@ namespace TableInterface.Entities
             Width = tumblrPost.Width > 0 ? tumblrPost.Width : (int?)null;
             Heigth = tumblrPost.Heigth > 0 ? tumblrPost.Heigth : (int?)null;
 
-            PhotosCount = tumblrPost.Photos == null ? 0 : tumblrPost.Photos.Length;
             PhotoOriginalUrls = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : string.Join(";", tumblrPost.Photos.Select(x => x.Alt_sizes[0].Url));
             PhotosJson = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Photos);
 

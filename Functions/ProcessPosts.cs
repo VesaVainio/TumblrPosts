@@ -10,6 +10,8 @@ namespace Functions
         [FunctionName("PostsToProcess")]
         public static void Run([QueueTrigger("posts-to-process", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
+            Startup.Init();
+
             log.Info($"C# Queue trigger function processed: {myQueueItem}");
 
             PostsToProcess postsToProcess = JsonConvert.DeserializeObject<PostsToProcess>(myQueueItem);

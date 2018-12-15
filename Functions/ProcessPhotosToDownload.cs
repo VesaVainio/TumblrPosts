@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -21,6 +22,8 @@ namespace Functions
         [FunctionName("ProcessPhotosToDownload")]
         public static async Task Run([QueueTrigger("photos-to-download", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
+            Startup.Init();
+
             try
             {
                 log.Info($"C# Queue trigger function ProcessPhotosToDownload processed: {myQueueItem}");
@@ -35,6 +38,8 @@ namespace Functions
 
                 PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
                 postsTableAdapter.Init(log);
+
+                List<string> blobUris = new List<string>();
 
                 using (HttpClient httpClient = new HttpClient())
                 {
@@ -53,7 +58,11 @@ namespace Functions
                                 if (photoBytes.Length > 0)
                                 {
                                     Uri blobUri = await blobAdapter.UploadPhotoBlob(urlHelper, photoBytes, isOriginal);
-                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), urlHelper.Size, altSize.Width, altSize.Height);
+                                    if (isOriginal)
+                                    {
+                                        blobUris.Add(blobUri.ToString());
+                                    }
+                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), urlHelper.Name, urlHelper.Size, altSize.Width, altSize.Height);
                                     isOriginal = false;
                                 }
                             }
@@ -65,7 +74,7 @@ namespace Functions
                     }
                 }
 
-                postsTableAdapter.MarkAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId);
+                postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, blobUris.ToArray());
             } catch (Exception ex)
             {
                 log.Error("Error in ProcessPhotosToDownload", ex);
