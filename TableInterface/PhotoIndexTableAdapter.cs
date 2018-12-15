@@ -2,6 +2,7 @@
 using Microsoft.Azure.Storage;
 using QueueInterface.Messages.Dto;
 using System.Configuration;
+using System.Net;
 using TableInterface.Entities;
 
 namespace TableInterface
@@ -9,6 +10,7 @@ namespace TableInterface
     public class PhotoIndexTableAdapter
     {
         private CloudTable photoIndexTable;
+        private CloudTable photoUrlIndexTable;
 
         public void Init()
         {
@@ -17,9 +19,10 @@ namespace TableInterface
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
             photoIndexTable = tableClient.GetTableReference("PhotoIndex");
+            photoUrlIndexTable = tableClient.GetTableReference("PhotoUrlIndex");
         }
 
-        public void InsertPhotoIndex(PostIndexInfo indexInfo, string uri, string name, int size, int width, int heigth)
+        public void InsertPhotoIndex(PostIndexInfo indexInfo, string sourceBlog, string uri, string name, int size, int width, int heigth, string originalUrl)
         {
             PhotoIndexEntity photoIndexEntity = new PhotoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate, name, size)
             {
@@ -30,6 +33,30 @@ namespace TableInterface
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(photoIndexEntity);
             photoIndexTable.Execute(insertOrMergeOperation);
+
+            PhotoUrlIndexEntity photoUrlIndexEntity = new PhotoUrlIndexEntity
+            {
+                PartitionKey = string.IsNullOrEmpty(sourceBlog) ? indexInfo.BlogName : sourceBlog,
+                RowKey = WebUtility.UrlEncode(originalUrl),
+                BlobUrl = uri
+            };
+
+            insertOrMergeOperation = TableOperation.InsertOrMerge(photoUrlIndexEntity);
+            photoUrlIndexTable.Execute(insertOrMergeOperation);
+        }
+
+        public PhotoUrlIndexEntity GetPhotoUrlndex(string sourceBlog, string photoUrl)
+        {
+            string encodedUrl = WebUtility.UrlEncode(photoUrl);
+            TableOperation retrieveOperation = TableOperation.Retrieve<PhotoUrlIndexEntity>(sourceBlog, encodedUrl);
+            TableResult result = photoUrlIndexTable.Execute(retrieveOperation);
+            if (result.HttpStatusCode == 200)
+            {
+                PhotoUrlIndexEntity entity = (PhotoUrlIndexEntity)result.Result;
+                return entity;
+            }
+
+            return null;
         }
     }
 }

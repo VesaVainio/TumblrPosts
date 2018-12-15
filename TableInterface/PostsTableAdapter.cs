@@ -10,9 +10,11 @@ namespace TableInterface
     public class PostsTableAdapter
     {
         private CloudTable postsTable;
+        private TraceWriter log;
 
         public void Init(TraceWriter log)
         {
+            this.log = log;
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
@@ -20,16 +22,25 @@ namespace TableInterface
             postsTable = tableClient.GetTableReference("Posts");
         }
 
-        public void InsertPost(PostEntity postEntity)
+        public bool InsertPost(PostEntity postEntity)
         {
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(postEntity);
-            postsTable.Execute(insertOrMergeOperation);
+            try
+            {
+                postsTable.Execute(insertOrMergeOperation);
+            } catch (StorageException ex)
+            {
+                log.Warning("Saving PostEntity " + postEntity.PartitionKey + "/" + postEntity.RowKey + " failed: " + ex.Message);
+                return false;
+            }
+
+            return true;
         }
 
         public PostEntity GetPost(string blogName, string postId)
         {
-            TableOperation retrieveJeffSmith = TableOperation.Retrieve<PostEntity>(blogName, postId);
-            TableResult result = postsTable.Execute(retrieveJeffSmith);
+            TableOperation retrieveOperation = TableOperation.Retrieve<PostEntity>(blogName, postId);
+            TableResult result = postsTable.Execute(retrieveOperation);
             if (result.HttpStatusCode == 200)
             {
                 PostEntity entity = (PostEntity)result.Result;

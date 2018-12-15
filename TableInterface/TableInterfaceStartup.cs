@@ -15,6 +15,9 @@ namespace TableInterface
             CloudTable photoIndexTable = tableClient.GetTableReference("PhotoIndex");
             photoIndexTable.CreateIfNotExists();
 
+            CloudTable photoUrlIndexTable = tableClient.GetTableReference("PhotoUrlIndex");
+            photoUrlIndexTable.CreateIfNotExists();
+
             CloudTable videoIndexTable = tableClient.GetTableReference("VideoIndex");
             videoIndexTable.CreateIfNotExists();
 

@@ -54,6 +54,13 @@ namespace Functions
 
                             if (isOriginal || (urlHelper != null && downloadSizes.Contains(urlHelper.Size)))
                             {
+                                string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog) ? photosToDownload.IndexInfo.BlogName : photosToDownload.SourceBlog;
+                                if (photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url) != null)
+                                {
+                                    log.Info($"Photo " + altSize.Url + "already downloaded");
+                                    break;
+                                }
+
                                 byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
                                 if (photoBytes.Length > 0)
                                 {
@@ -62,7 +69,8 @@ namespace Functions
                                     {
                                         blobUris.Add(blobUri.ToString());
                                     }
-                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, blobUri.ToString(), urlHelper.Name, urlHelper.Size, altSize.Width, altSize.Height);
+                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size, 
+                                        altSize.Width, altSize.Height, altSize.Url);
                                     isOriginal = false;
                                 }
                             }

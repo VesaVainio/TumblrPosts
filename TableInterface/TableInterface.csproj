@@ -192,6 +192,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
     <Compile Include="Entities\VideoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\PhotoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\LikeIndexEntity.cs" />

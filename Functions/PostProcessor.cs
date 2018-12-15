@@ -39,7 +39,10 @@ namespace Functions
 
                 PostEntity postEntityFromTumblr = new PostEntity(post);
 
-                postsTableAdapter.InsertPost(postEntityFromTumblr);
+                if (!postsTableAdapter.InsertPost(postEntityFromTumblr))
+                {
+                    break;
+                }
 
                 if (likerBlogname != null && post.Liked_Timestamp.HasValue)
                 {
@@ -55,7 +58,10 @@ namespace Functions
                 {
                     if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
-                        photosToDownloadMessage = new PhotosToDownload(post);
+                        photosToDownloadMessage = new PhotosToDownload(post)
+                        {
+                            Photos = post.Photos
+                        };
                     }
                     else
                     {
@@ -92,15 +98,10 @@ namespace Functions
                         {
                             if (photosToDownloadMessage == null)
                             {
-                                Post fakePost = new Post
+                                photosToDownloadMessage = new PhotosToDownload(post)
                                 {
-                                    Blog_name = post.Blog_name,
-                                    Id = post.Id,
-                                    Date = post.Date,
-                                    Reblog_key = post.Reblog_key,
                                     Photos = photos.ToArray()
                                 };
-                                photosToDownloadMessage = new PhotosToDownload(fakePost);
                             }
                             else
                             {
