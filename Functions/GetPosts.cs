@@ -22,15 +22,14 @@ namespace Functions
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);
 
-            //PostProcessor postProcessor = new PostProcessor();
-            //postProcessor.Init(log);
-
             log.Info("PostProcessor initialized.");
 
+            long totalInBlog = 0;
+            long totalReceived = 0;
             BlogPosts blogPosts = null;
             using (HttpClient httpClient = new HttpClient())
             {
-                long totalCount = 0;
+                
                 int offset = 0;
                 string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
                 do
@@ -43,7 +42,8 @@ namespace Functions
                         TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
                         blogPosts = tumblrResponse.Response;
 
-                        totalCount = blogPosts.Blog.Posts;
+                        totalInBlog = blogPosts.Blog.Posts;
+                        totalReceived += blogPosts.Posts.Count;
                         offset += 20;
 
                         if (blogPosts.Posts != null && blogPosts.Posts.Count > 0)
@@ -53,13 +53,13 @@ namespace Functions
                         //postProcessor.ProcessPosts(blogPosts.Posts, log);
                     }
 
-                } while (offset < totalCount);
+                } while (offset < totalInBlog);
             }
 
             log.Info("C# HTTP trigger function processed a request.");
 
             // Fetching the name from the path parameter in the request URL
-            return req.CreateResponse(HttpStatusCode.OK, "Got " + blogPosts.Posts.Count + " posts");
+            return req.CreateResponse(HttpStatusCode.OK, "Queued  " + totalReceived + "/" + totalInBlog + " posts for processing");
         }
     }
 }
