@@ -9,6 +9,8 @@ namespace QueueInterface
 {
     public class MediaToDownloadQueueAdapter
     {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+
         CloudQueue photosToDownloadQueue;
         CloudQueue videoToDownloadQueue;
 
@@ -29,14 +31,14 @@ namespace QueueInterface
 
         public void SendPhotosToDownload(PhotosToDownload photosToDownload)
         {
-            string jsonMessage = JsonConvert.SerializeObject(photosToDownload);
+            string jsonMessage = JsonConvert.SerializeObject(photosToDownload, JsonSerializerSettings);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             photosToDownloadQueue.AddMessage(message);
         }
 
         public void SendVideoToDownload(VideoToDownload videoToDownload)
         {
-            string jsonMessage = JsonConvert.SerializeObject(videoToDownload);
+            string jsonMessage = JsonConvert.SerializeObject(videoToDownload, JsonSerializerSettings);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             videoToDownloadQueue.AddMessage(message);
         }

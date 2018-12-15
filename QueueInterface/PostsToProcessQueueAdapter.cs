@@ -12,7 +12,9 @@ namespace QueueInterface
 {
     public class PostsToProcessQueueAdapter
     {
-        CloudQueue postsToProcessQueue;
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+
+        private CloudQueue postsToProcessQueue;
 
         public void Init(TraceWriter log)
         {
@@ -35,7 +37,7 @@ namespace QueueInterface
                 Posts = posts.ToArray(),
                 LikerBlogname = likerBlogName
             };
-            string jsonMessage = JsonConvert.SerializeObject(postsToProcess);
+            string jsonMessage = JsonConvert.SerializeObject(postsToProcess, JsonSerializerSettings);
 
             if (jsonMessage.Length > 45000)
             {
