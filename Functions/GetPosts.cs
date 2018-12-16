@@ -50,7 +50,10 @@ namespace Functions
                         {
                             postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
                         }
-                        //postProcessor.ProcessPosts(blogPosts.Posts, log);
+                    }
+                    else
+                    {
+                        return req.CreateResponse(response.StatusCode, "Getting posts got an error: " + response.ReasonPhrase);
                     }
 
                 } while (offset < totalInBlog);

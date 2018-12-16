@@ -26,7 +26,6 @@ namespace Functions
             long totalCount = 0;
             using (HttpClient httpClient = new HttpClient())
             {
-
                 DateTime beforeTime = DateTime.UtcNow;
                 do
                 {
@@ -36,7 +35,8 @@ namespace Functions
                     {
                         long timestamp = GetUnixTime(beforeTime);
                         url = "https://api.tumblr.com/v2/blog/" + blogname + "/likes?before=" + timestamp + "&api_key=" + apiKey;
-                    } else
+                    }
+                    else
                     {
                         url = "https://api.tumblr.com/" + likes._links.Next.Href + "&api_key=" + apiKey;
                     }
@@ -50,7 +50,6 @@ namespace Functions
                         totalCount += likes.Liked_posts.Count;
 
                         postsToProcessQueueAdapter.SendPostsToProcess(likes.Liked_posts, blogname);
-                        //postProcessor.ProcessPosts(likes.Liked_posts, log);
                     }
                     else
                     {
@@ -66,7 +65,6 @@ namespace Functions
             // Fetching the name from the path parameter in the request URL
             return req.CreateResponse(HttpStatusCode.OK, "Got " + totalCount + " posts");
         }
-
 
         private static long GetUnixTime(DateTime dateTime)
         {
