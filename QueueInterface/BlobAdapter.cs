@@ -1,7 +1,7 @@
-﻿using Microsoft.Azure;
-using Microsoft.WindowsAzure.Storage;
+﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using TumblrPics.Model;
@@ -14,7 +14,7 @@ namespace BlobInterface
 
         public void Init()
         {
-            string connectionString = CloudConfigurationManager.GetSetting("AzureWebJobsStorage");
+            string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             cloudBlobClient = storageAccount.CreateCloudBlobClient();
         }
