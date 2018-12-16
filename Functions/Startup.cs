@@ -14,6 +14,8 @@ namespace Functions
             QueueInterfaceStartup.Init();
         }
 
-        public static void Init() { }
+        public static void Init() {
+            FunctionUtilities.ConfigureBindingRedirects();
+        }
     }
 }

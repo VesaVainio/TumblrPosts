@@ -18,15 +18,9 @@ namespace Functions
             string blogname, TraceWriter log)
         {
             Startup.Init();
-            log.Info("BindingRedirects configured.");
 
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);
-
-            //PostProcessor postProcessor = new PostProcessor();
-            //postProcessor.Init(log);
-
-            log.Info("PostProcessor initialized.");
 
             Likes likes = null;
             long totalCount = 0;

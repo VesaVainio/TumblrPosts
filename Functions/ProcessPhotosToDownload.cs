@@ -69,6 +69,7 @@ namespace Functions
                                     {
                                         blobUris.Add(blobUri.ToString());
                                     }
+
                                     photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size, 
                                         altSize.Width, altSize.Height, altSize.Url);
                                     isOriginal = false;
@@ -83,7 +84,8 @@ namespace Functions
                 }
 
                 postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, blobUris.ToArray());
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 log.Error("Error in ProcessPhotosToDownload", ex);
             }
