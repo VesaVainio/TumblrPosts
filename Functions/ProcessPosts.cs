@@ -2,17 +2,16 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
+using TumblrPics.Model;
 
 namespace Functions
 {
     public static class ProcessPosts
     {
         [FunctionName("PostsToProcess")]
-        public static void Run([QueueTrigger("posts-to-process", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
+        public static void Run([QueueTrigger(Constants.PostsToProcessQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
             Startup.Init();
-
-            log.Info($"C# Queue trigger function processed: {myQueueItem}");
 
             PostsToProcess postsToProcess = JsonConvert.DeserializeObject<PostsToProcess>(myQueueItem);
 

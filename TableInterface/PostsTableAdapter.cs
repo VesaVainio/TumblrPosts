@@ -1,7 +1,9 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.WebJobs.Host;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using TableInterface.Entities;
 using TumblrPics.Model;
 
@@ -9,6 +11,8 @@ namespace TableInterface
 {
     public class PostsTableAdapter
     {
+        private static List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
+
         private CloudTable postsTable;
         private TraceWriter log;
 
@@ -48,6 +52,14 @@ namespace TableInterface
             }
 
             return null;
+        }
+
+        public int GetPostCount(string blogName)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
+            TableQuery query = new TableQuery().Where(pkFilter).Select(PartitionAndRowKey);
+            IEnumerable<DynamicTableEntity> result = postsTable.ExecuteQuery(query);
+            return result.Count();
         }
 
         public void MarkPhotosAsDownloaded(string blogName, string postId, string[] photoUrls)

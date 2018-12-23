@@ -48,5 +48,12 @@ namespace Functions
 
             AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
+
+        public static long GetUnixTime(DateTime dateTime)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            TimeSpan span = (dateTime.ToUniversalTime() - epoch);
+            return Convert.ToInt64(span.TotalSeconds);
+        }
     }
 }

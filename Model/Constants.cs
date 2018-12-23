@@ -8,6 +8,8 @@
         public const string VideosToDownloadQueueName = "videos-to-download";
         public const string PhotosToDownloadQueueName = "photos-to-download";
 
-        public const string PostsToProcessQueueName = "photos-to-download";
+        public const string PostsToProcessQueueName = "posts-to-process";
+
+        public const string BlogToFetchQueueName = "blog-to-fetch";
     }
 }

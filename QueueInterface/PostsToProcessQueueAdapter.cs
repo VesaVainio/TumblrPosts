@@ -6,6 +6,7 @@ using QueueInterface.Messages;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using TumblrPics.Model;
 using TumblrPics.Model.Tumblr;
 
 namespace QueueInterface
@@ -25,7 +26,7 @@ namespace QueueInterface
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
-            postsToProcessQueue = queueClient.GetQueueReference("posts-to-process");
+            postsToProcessQueue = queueClient.GetQueueReference(Constants.PostsToProcessQueueName);
         }
 
         public bool SendPostsToProcess(IEnumerable<Post> posts, string likerBlogName = null, bool terminateRecursion = false)

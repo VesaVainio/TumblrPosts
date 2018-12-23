@@ -1,7 +1,9 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
-using QueueInterface.Messages.Dto;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using TableInterface.Entities;
 
 namespace TableInterface
@@ -24,7 +26,20 @@ namespace TableInterface
             LikeIndexEntity likeIndexEntity = new LikeIndexEntity(blogName, likedTimestamp, likedBlogname, likedPostId, reblogKey);
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(likeIndexEntity);
-            likeIndexTable.Execute(insertOrMergeOperation);
+            TableResult result = likeIndexTable.Execute(insertOrMergeOperation);
+            if (result.HttpStatusCode != 204 || ((LikeIndexEntity)result.Result).LikedBlogName == null)
+            {
+                throw new Exception("Failed!");
+            }
+        }
+
+        public List<LikeIndexEntity> GetAll(string blogName)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
+            TableQuery<LikeIndexEntity> query = new TableQuery<LikeIndexEntity>().Where(pkFilter);
+            IEnumerable<LikeIndexEntity> result = likeIndexTable.ExecuteQuery(query);
+            List<LikeIndexEntity> entities = result.ToList();
+            return entities;
         }
     }
 }

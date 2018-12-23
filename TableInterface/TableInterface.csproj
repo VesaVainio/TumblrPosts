@@ -192,6 +192,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlogInfoTableAdapter.cs" />
+    <Compile Include="Entities\BlogEntity.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
     <Compile Include="Entities\VideoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\PhotoDownloadCompleteEntity.cs" />

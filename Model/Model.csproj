@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="Tumblr\BlogInfo.cs" />
     <Compile Include="Tumblr\Player.cs" />
     <Compile Include="Tumblr\TrailPost.cs" />
     <Compile Include="Tumblr\TrailBlog.cs" />

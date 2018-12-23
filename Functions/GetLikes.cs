@@ -19,6 +19,8 @@ namespace Functions
         {
             Startup.Init();
 
+            blogname = blogname.ToLower().Replace(".tumblr.com", "");
+
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);
 
@@ -33,7 +35,7 @@ namespace Functions
                     string url;
                     if (likes == null)
                     {
-                        long timestamp = GetUnixTime(beforeTime);
+                        long timestamp = FunctionUtilities.GetUnixTime(beforeTime);
                         url = "https://api.tumblr.com/v2/blog/" + blogname + "/likes?before=" + timestamp + "&api_key=" + apiKey;
                     }
                     else
@@ -64,13 +66,6 @@ namespace Functions
 
             // Fetching the name from the path parameter in the request URL
             return req.CreateResponse(HttpStatusCode.OK, "Got " + totalCount + " posts");
-        }
-
-        private static long GetUnixTime(DateTime dateTime)
-        {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan span = (dateTime.ToUniversalTime() - epoch);
-            return Convert.ToInt64(span.TotalSeconds);
         }
     }
 }

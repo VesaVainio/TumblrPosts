@@ -26,8 +26,6 @@ namespace Functions
 
             try
             {
-                log.Info($"C# Queue trigger function ProcessPhotosToDownload processed: {myQueueItem}");
-
                 PhotosToDownload photosToDownload = JsonConvert.DeserializeObject<PhotosToDownload>(myQueueItem);
 
                 BlobAdapter blobAdapter = new BlobAdapter();

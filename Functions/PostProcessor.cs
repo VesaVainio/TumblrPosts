@@ -19,8 +19,6 @@ namespace Functions
 
         public void Init(TraceWriter log)
         {
-            log.Info("Starting PostProcessor init");
-
             postsTableAdapter = new PostsTableAdapter();
             postsTableAdapter.Init(log);
 

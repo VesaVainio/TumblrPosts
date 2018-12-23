@@ -14,7 +14,7 @@ namespace QueueInterface
 
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
-            CloudQueue postsToProcessQueue = queueClient.GetQueueReference("posts-to-process");
+            CloudQueue postsToProcessQueue = queueClient.GetQueueReference(Constants.PostsToProcessQueueName);
             postsToProcessQueue.CreateIfNotExists();
 
             CloudQueue photosToDownloadQueue = queueClient.GetQueueReference(Constants.PhotosToDownloadQueueName);
@@ -22,6 +22,9 @@ namespace QueueInterface
 
             CloudQueue videosToDownloadQueue = queueClient.GetQueueReference(Constants.VideosToDownloadQueueName);
             videosToDownloadQueue.CreateIfNotExists();
+
+            CloudQueue blogToFetchQueue = queueClient.GetQueueReference(Constants.BlogToFetchQueueName);
+            blogToFetchQueue.CreateIfNotExists();
         }
     }
 }

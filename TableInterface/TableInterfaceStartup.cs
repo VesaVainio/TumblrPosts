@@ -26,6 +26,9 @@ namespace TableInterface
 
             CloudTable postsTable = tableClient.GetTableReference("Posts");
             postsTable.CreateIfNotExists();
+
+            CloudTable blogsTable = tableClient.GetTableReference("Blogs");
+            blogsTable.CreateIfNotExists();
         }
     }
 }
