@@ -7,13 +7,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
+using TumblrPics.Model;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {
     public class PostsGetter
     {
-        public async Task<GetPostsResult> GetPosts(TraceWriter log, string blogname, int startingOffset = 0, int maxOffset = 3000, long timeoutSeconds = 270)
+        public async Task<GetPostsResult> GetPosts(TraceWriter log, string blogname, int startingOffset = 0, int maxOffset = Constants.MaxPostsToFetch, long timeoutSeconds = 270)
         {
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);

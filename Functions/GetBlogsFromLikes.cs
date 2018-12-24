@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
+using TumblrPics.Model;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
@@ -65,9 +66,12 @@ namespace Functions
                         blogStatsRow.HadPostCount = postsTableAdapter.GetPostCount(blogStatsRow.Blogname);
                         blogStatsRow.TotalPostCount = blog.Posts;
                         
-
                         long difference = blog.Posts - blogStatsRow.HadPostCount;
-                        if (difference > 5)
+                        if (blogStatsRow.HadPostCount > Constants.MaxPostsToFetch)
+                        {
+                            log.Info("Already fetched " + blogStatsRow.HadPostCount + " posts from blog");
+                        }
+                        else if (difference > 5)
                         {
                             log.Info("Blog " + blogStatsRow.Blogname + " to be downloaded, missing " + difference + " posts");
                             blogToFetchQueueAdapter.SendBlogToFetch(new BlogToFetch {
