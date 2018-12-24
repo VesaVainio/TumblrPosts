@@ -33,7 +33,7 @@ namespace TumblrPics.Model.Tumblr
 
         public string Video_type { get; set; }
         public string Video_url { get; set; }
-        public int? Duration { get; set; }
+        public double? Duration { get; set; }
         //public Player[] Player { get; set; }
     }
 }

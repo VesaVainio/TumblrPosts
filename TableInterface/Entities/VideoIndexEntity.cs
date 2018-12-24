@@ -8,7 +8,7 @@ namespace TableInterface.Entities
         public string Uri { get; set; }
         public string OriginalUri { get; set; }
         public string VideoType { get; set; }
-        public int Duration { get; set; }
+        public double Duration { get; set; }
         public int Bytes { get; set; }
         public string PostId { get; set; }
         public DateTime PostDate { get; set; }

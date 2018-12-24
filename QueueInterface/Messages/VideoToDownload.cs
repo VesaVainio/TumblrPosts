@@ -7,7 +7,7 @@ namespace QueueInterface.Messages
     {
         public string[] VideoUrls { get; set; }
         public string VideoType { get; set; }
-        public int Duration { get; set; }
+        public double Duration { get; set; }
         public PostIndexInfo IndexInfo { get; set; }
         public string ReblogKey { get; set; }
 
