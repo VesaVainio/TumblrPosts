@@ -12,6 +12,7 @@ namespace TableInterface
     public class PostsTableAdapter
     {
         private static List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
+        private static List<string> FrontendColumns = new List<string> { "PartitionKey", "RowKey", "Date", "PhotoBlobUrls", "Type" };
 
         private CloudTable postsTable;
         private TraceWriter log;
@@ -60,6 +61,14 @@ namespace TableInterface
             TableQuery query = new TableQuery().Where(pkFilter).Select(PartitionAndRowKey);
             IEnumerable<DynamicTableEntity> result = postsTable.ExecuteQuery(query);
             return result.Count();
+        }
+
+        public List<PostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
+            TableQuery<PostEntity> query = new TableQuery<PostEntity>().Where(pkFilter).Select(FrontendColumns);
+            IEnumerable<PostEntity> result = postsTable.ExecuteQuery(query);
+            return result.OrderByDescending(x => x.RowKey).Skip(offset).Take(maxCount).ToList();
         }
 
         public void MarkPhotosAsDownloaded(string blogName, string postId, string[] photoUrls)
