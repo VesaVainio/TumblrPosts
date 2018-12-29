@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
-using QueueInterface.Messages.Dto;
+using Model.Site;
+using System;
 using System.Configuration;
 using TableInterface.Entities;
 
@@ -19,12 +20,12 @@ namespace TableInterface
             videoIndexTable = tableClient.GetTableReference("VideoIndex");
         }
 
-        public void InsertVideoIndex(PostIndexInfo indexInfo, string uri, string originalUri, string videoType, int bytes, double duration)
+        public void InsertVideoIndex(string blogname, string id, DateTime date, Video video, string videoType, int bytes, double duration)
         {
-            VideoIndexEntity videoIndexEntity = new VideoIndexEntity(indexInfo.BlogName, indexInfo.PostId, indexInfo.PostDate, bytes)
+            VideoIndexEntity videoIndexEntity = new VideoIndexEntity(blogname, id, date, bytes)
             {
-                Uri = uri,
-                OriginalUri = originalUri,
+                Uri = video.Url,
+                ThumbUri = video.ThumbUrl,
                 VideoType = videoType,
                 Duration = duration
             };

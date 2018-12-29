@@ -6,7 +6,7 @@ namespace TableInterface.Entities
     public class VideoIndexEntity : TableEntity
     {
         public string Uri { get; set; }
-        public string OriginalUri { get; set; }
+        public string ThumbUri { get; set; }
         public string VideoType { get; set; }
         public double Duration { get; set; }
         public int Bytes { get; set; }

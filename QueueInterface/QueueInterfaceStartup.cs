@@ -25,6 +25,12 @@ namespace QueueInterface
 
             CloudQueue blogToFetchQueue = queueClient.GetQueueReference(Constants.BlogToFetchQueueName);
             blogToFetchQueue.CreateIfNotExists();
+
+            CloudQueue postToGetQueue = queueClient.GetQueueReference(Constants.PostToGetQueueName);
+            postToGetQueue.CreateIfNotExists();
+
+            CloudQueue blogToIndexQueue = queueClient.GetQueueReference(Constants.BlogToIndexQueueName);
+            blogToIndexQueue.CreateIfNotExists();
         }
     }
 }

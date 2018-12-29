@@ -1,14 +1,17 @@
+using BlobInterface;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
+using Model.Site;
+using Newtonsoft.Json;
+using QueueInterface.Messages;
+using QueueInterface.Messages.Dto;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using BlobInterface;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using QueueInterface.Messages;
 using TableInterface;
+using TableInterface.Entities;
 using TumblrPics.Model;
 
 namespace Functions
@@ -33,33 +36,51 @@ namespace Functions
             PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
             postsTableAdapter.Init(log);
 
+            ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();
+            reversePostsTableAdapter.Init(log);
+
             using (HttpClient httpClient = new HttpClient())
             {
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("video/*"));
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
-                List<string> videoUris = new List<string>();
+                List<Video> videos = new List<Video>();
 
-                foreach (string videoUrl in videosToDownload.VideoUrls)
+                string blogname = videosToDownload.IndexInfo.BlogName;
+                string id = videosToDownload.IndexInfo.PostId;
+                DateTime date = videosToDownload.IndexInfo.PostDate;
+
+                foreach (VideoUrls videoUrls in videosToDownload.VideoUrls)
                 {
                     try
                     {
-                        byte[] videoBytes = await httpClient.GetByteArrayAsync(videoUrl);
-                        if (videoBytes.Length > 0)
+                        byte[] videoBytes = await httpClient.GetByteArrayAsync(videoUrls.VideoUrl);
+                        byte[] thumbBytes = await httpClient.GetByteArrayAsync(videoUrls.VideoThumbUrl);
+                        if (videoBytes.Length > 0 && thumbBytes.Length > 0)
                         {
-                            Uri blobUri = await blobAdapter.UploadVideoBlob(videoBytes, videosToDownload.IndexInfo.BlogName, videoUrl);
-                            videoUris.Add(blobUri.ToString());
+                            Video blobVideo = await blobAdapter.UploadVideoBlob(videoBytes, videosToDownload.IndexInfo.BlogName, videoUrls.VideoUrl, thumbBytes, videoUrls.VideoThumbUrl);
+                            videos.Add(blobVideo);
 
-                            videoIndexTableAdapter.InsertVideoIndex(videosToDownload.IndexInfo, blobUri.ToString(), videoUrl, videosToDownload.VideoType, videoBytes.Length, videosToDownload.Duration);
+                            videoIndexTableAdapter.InsertVideoIndex(blogname, id, date, blobVideo, videosToDownload.VideoType, videoBytes.Length, videosToDownload.Duration);
 
-                            postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videoUris.ToArray());
-
-                            log.Info("Video successfully downloaded: " + videoUrl);
+                            log.Info("Video successfully downloaded: " + videoUrls);
                         }
                     }
                     catch (HttpRequestException ex)
                     {
-                        log.Warning("Error while downloading video " + videoUrl + " - " + ex.Message);
+                        log.Warning("Error while downloading video " + videoUrls.VideoUrl + " - " + ex.Message);
                     }
+                }
+
+                if (videos.Count > 0)
+                {
+                    postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray());
+
+                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date)
+                    {
+                        Videos = JsonConvert.SerializeObject(videos)
+                    };
+                    reversePostsTableAdapter.InsertPost(reversePost);
                 }
             }
         }

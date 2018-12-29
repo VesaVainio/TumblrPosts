@@ -32,12 +32,13 @@ namespace TableInterface.Entities
 
         public string PhotoOriginalUrls { get; set; }
         public string PhotosJson { get; set; }
-        public string PhotoBlobUrls { get; set; } // separated by ;
+        public string PhotoBlobUrls { get; set; } // separated by ;, only the originals
 
         public string VideoUrl { get; set; }
         public string VideoOriginalUrl { get; set; }
         public string VideoType { get; set; }
         public string VideoBlobUrls { get; set; } // populated when the videos have been downloaded
+        public string VideoThumbBlobUrls { get; set; } // populated when the videos have been downloaded
 
         public int? PicsDownloadLevel { get; set; }
         public int? VideosDownloadLevel { get; set; }
@@ -58,14 +59,12 @@ namespace TableInterface.Entities
             SourceUrl = string.IsNullOrEmpty(tumblrPost.Source_url) ? null : tumblrPost.Source_url;
             NoteCount = tumblrPost.Note_count;
             ReblogKey = string.IsNullOrEmpty(tumblrPost.Reblog_key) ? null : tumblrPost.Reblog_key;
-            //Reblog = tumblrPost.Reblog == null ? null : JsonConvert.SerializeObject(tumblrPost.Reblog);
             Trail = tumblrPost.Trail == null || tumblrPost.Trail.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Trail); 
 
             Title = tumblrPost.Title;
             Format = tumblrPost.Format;
             Body = string.IsNullOrEmpty(tumblrPost.Body) ? null : JsonConvert.ToString(tumblrPost.Body);
 
-            //Caption = string.IsNullOrEmpty(tumblrPost.Caption) ? null : tumblrPost.Caption;
             Width = tumblrPost.Width > 0 ? tumblrPost.Width : (int?)null;
             Heigth = tumblrPost.Heigth > 0 ? tumblrPost.Heigth : (int?)null;
 

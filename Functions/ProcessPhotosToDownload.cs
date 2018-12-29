@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using BlobInterface;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Site;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
 using TableInterface;
+using TableInterface.Entities;
 using TumblrPics.Model;
 using TumblrPics.Model.Tumblr;
 
@@ -20,7 +22,7 @@ namespace Functions
         private static int[] downloadSizes = { 1280, 640, 250 };
 
         [FunctionName("ProcessPhotosToDownload")]
-        public static async Task Run([QueueTrigger("photos-to-download", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
+        public static async Task Run([QueueTrigger(Constants.PhotosToDownloadQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
             Startup.Init();
 
@@ -37,21 +39,36 @@ namespace Functions
                 PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
                 postsTableAdapter.Init(log);
 
-                List<string> blobUris = new List<string>();
+                ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();
+                reversePostsTableAdapter.Init(log);
+
+                List<Model.Site.Photo> sitePhotos = new List<Model.Site.Photo>();
 
                 using (HttpClient httpClient = new HttpClient())
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
-                    foreach (Photo photo in photosToDownload.Photos)
+                    foreach (TumblrPics.Model.Tumblr.Photo photo in photosToDownload.Photos)
                     {
                         bool isOriginal = true;
+                        Model.Site.Photo sitePhoto = null;
+
                         foreach (AltSize altSize in photo.Alt_sizes)
                         {
-                            PhotoUrlHelper urlHelper = PhotoUrlHelper.Parse(altSize.Url);
+                            PhotoUrlHelper urlHelper = PhotoUrlHelper.ParseTumblr(altSize.Url);
 
                             if (isOriginal || (urlHelper != null && downloadSizes.Contains(urlHelper.Size)))
                             {
+                                if (sitePhoto == null)
+                                {
+                                    sitePhoto = new Model.Site.Photo
+                                    {
+                                        Name = urlHelper.Name,
+                                        Extension = urlHelper.Extension,
+                                        Sizes = new Model.Site.PhotoSize[0]
+                                    };
+                                }
+
                                 string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog) ? photosToDownload.IndexInfo.BlogName : photosToDownload.SourceBlog;
                                 if (photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url) != null)
                                 {
@@ -63,12 +80,14 @@ namespace Functions
                                 if (photoBytes.Length > 0)
                                 {
                                     Uri blobUri = await blobAdapter.UploadPhotoBlob(urlHelper, photoBytes, isOriginal);
-                                    if (isOriginal)
-                                    {
-                                        blobUris.Add(blobUri.ToString());
-                                    }
 
-                                    photoIndexTableAdapter.InsertPhotoIndex(photosToDownload.IndexInfo, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size, 
+                                    AddSizeToSitePhoto(sitePhoto, blobUri, altSize);
+
+                                    string blogname = photosToDownload.IndexInfo.BlogName;
+                                    string id = photosToDownload.IndexInfo.PostId;
+                                    DateTime date = photosToDownload.IndexInfo.PostDate;
+
+                                    photoIndexTableAdapter.InsertPhotoIndex(blogname, id, date, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size, 
                                         altSize.Width, altSize.Height, altSize.Url);
                                     isOriginal = false;
                                 }
@@ -78,14 +97,44 @@ namespace Functions
                                 //log.Info($"Skipping AltSize with width {altSize.Width}");
                             }
                         }
+
+                        if (sitePhoto.Sizes.Length > 0)
+                        {
+                            sitePhotos.Add(sitePhoto);
+                        }
                     }
                 }
 
-                postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, blobUris.ToArray());
+                postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos);
+
+                ReversePostEntity reversePost = new ReversePostEntity(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, photosToDownload.PostType,
+                    photosToDownload.IndexInfo.PostDate)
+                {
+                    Photos = JsonConvert.SerializeObject(sitePhotos)
+                };
+                reversePostsTableAdapter.InsertPost(reversePost);
             }
             catch (Exception ex)
             {
                 log.Error("Error in ProcessPhotosToDownload", ex);
+            }
+        }
+
+        private static void AddSizeToSitePhoto(Model.Site.Photo sitePhoto, Uri blobUri, AltSize altSize)
+        {
+            PhotoUrlHelper urlHelper = PhotoUrlHelper.ParsePicai(blobUri.ToString());
+
+            if (urlHelper != null) {
+
+                PhotoSize photoSize = new PhotoSize
+                {
+                    Container = urlHelper.Container,
+                    Nominal = urlHelper.Size,
+                    Heigth = altSize.Height,
+                    Width = altSize.Width
+                };
+
+                sitePhoto.Sizes.Concat(new PhotoSize[] { photoSize });
             }
         }
     }

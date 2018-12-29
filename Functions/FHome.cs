@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
 
@@ -18,7 +17,7 @@ namespace Functions
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
         [FunctionName("FHome")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "home/{blogname}")]HttpRequestMessage req, 
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "home/{blogname}")]HttpRequestMessage req, 
             string blogname, TraceWriter log)
         {
             Startup.Init();
@@ -34,7 +33,7 @@ namespace Functions
                 Id = x.RowKey,
                 Type = x.Type,
                 Date = x.Date,
-                ImageUrl = GetImageUrl(x.PhotoBlobUrls)
+                //ImageUrl = GetImageUrl(x.PhotoBlobUrls)
             });
 
             return req.CreateResponse(HttpStatusCode.OK, entities, "application/json");

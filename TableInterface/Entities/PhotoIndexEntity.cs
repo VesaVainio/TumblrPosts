@@ -6,11 +6,12 @@ namespace TableInterface.Entities
     public class PhotoIndexEntity : TableEntity
     {
         public string Uri { get; set; }
-        public string OriginalUri { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public string PostId { get; set; }
         public DateTime PostDate { get; set; }
+
+        public PhotoIndexEntity() { }
 
         public PhotoIndexEntity(string blogName, string postId, DateTime postDate, string name, int size)
         {

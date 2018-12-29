@@ -1,6 +1,8 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Site;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -11,6 +13,8 @@ namespace TableInterface
 {
     public class PostsTableAdapter
     {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+
         private static List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
         private static List<string> FrontendColumns = new List<string> { "PartitionKey", "RowKey", "Date", "PhotoBlobUrls", "Type" };
 
@@ -63,6 +67,21 @@ namespace TableInterface
             return result.Count();
         }
 
+        public List<PostEntity> GetAll(string blogname)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogname);
+            TableQuery<PostEntity> query = new TableQuery<PostEntity>().Where(pkFilter);
+            IEnumerable<PostEntity> result = postsTable.ExecuteQuery(query);
+            return result.ToList();
+        }
+
+        public List<string> GetAllPartitions()
+        {
+            TableQuery<DynamicTableEntity> query = new TableQuery<DynamicTableEntity>().Select(PartitionAndRowKey);
+            IEnumerable<DynamicTableEntity> result = postsTable.ExecuteQuery(query);
+            return result.Select(x => x.PartitionKey).Distinct().ToList();
+        }
+
         public List<PostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
@@ -71,28 +90,28 @@ namespace TableInterface
             return result.OrderByDescending(x => x.RowKey).Skip(offset).Take(maxCount).ToList();
         }
 
-        public void MarkPhotosAsDownloaded(string blogName, string postId, string[] photoUrls)
+        public void MarkPhotosAsDownloaded(string blogName, string postId, List<Model.Site.Photo> sitePhotos)
         {
             PhotoDownloadCompleteEntity entity = new PhotoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
                 PicsDownloadLevel = Constants.MaxPicsDownloadLevel,
-                PhotoBlobUrls = string.Join(";", photoUrls)
+                PhotoBlobUrls = JsonConvert.SerializeObject(sitePhotos)
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
             postsTable.Execute(insertOrMergeOperation);
         }
 
-        public void MarkVideosAsDownloaded(string blogName, string postId, string[] videoUrls)
+        public void MarkVideosAsDownloaded(string blogName, string postId, Video[] videos)
         {
             VideoDownloadCompleteEntity entity = new VideoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
                 VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
-                VideoBlobUrls = string.Join(";", videoUrls)
+                VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings)
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);

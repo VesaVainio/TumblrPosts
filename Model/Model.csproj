@@ -42,7 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="Site\Photo.cs" />
+    <Compile Include="Site\PhotoSize.cs" />
     <Compile Include="Site\Post.cs" />
+    <Compile Include="Site\Video.cs" />
     <Compile Include="Tumblr\BlogInfo.cs" />
     <Compile Include="Tumblr\Player.cs" />
     <Compile Include="Tumblr\TrailPost.cs" />

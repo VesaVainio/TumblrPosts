@@ -195,6 +195,9 @@
     <Compile Include="BlogInfoTableAdapter.cs" />
     <Compile Include="Entities\BlogEntity.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
+    <Compile Include="Entities\PhotosByBlog.cs" />
+    <Compile Include="Entities\PostsByBlogEntity.cs" />
+    <Compile Include="Entities\ReversePostEntity.cs" />
     <Compile Include="Entities\VideoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\PhotoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\LikeIndexEntity.cs" />
@@ -202,6 +205,7 @@
     <Compile Include="Entities\PhotoIndexEntity.cs" />
     <Compile Include="Entities\PostEntity.cs" />
     <Compile Include="LikeIndexTableAdapter.cs" />
+    <Compile Include="ReversePostsTableAdapter.cs" />
     <Compile Include="TableInterfaceStartup.cs" />
     <Compile Include="VideoIndexTableAdapter.cs" />
     <Compile Include="PhotoIndexTableAdapter.cs" />
@@ -216,10 +220,6 @@
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{AD2BAEB5-BCAC-4793-B009-AB6370893BF4}</Project>
       <Name>Model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QueueInterface\QueueInterface.csproj">
-      <Project>{1BC35E49-FF4D-4E1A-9953-824B3495D0CF}</Project>
-      <Name>QueueInterface</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

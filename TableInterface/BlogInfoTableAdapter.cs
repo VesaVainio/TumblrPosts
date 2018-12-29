@@ -1,6 +1,5 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
-using System;
 using System.Configuration;
 using System.Threading.Tasks;
 using TableInterface.Entities;
@@ -24,14 +23,12 @@ namespace TableInterface
         {
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(blogEntity);
             blogsTable.Execute(insertOrMergeOperation);
+        }
 
-            string oldRowKey = blogEntity.RowKey;
-            blogEntity.RowKey = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-
-            insertOrMergeOperation = TableOperation.InsertOrMerge(blogEntity);
+        public void InsertPhotosByBlog(PhotosByBlog photosByBlog)
+        {
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(photosByBlog);
             blogsTable.Execute(insertOrMergeOperation);
-
-            blogEntity.RowKey = oldRowKey;
         }
 
         public async Task<BlogEntity> GetBlog(string blogname)

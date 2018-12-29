@@ -129,12 +129,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobAdapter.cs" />
+    <Compile Include="Messages\BlogToIndex.cs" />
+    <Compile Include="BlogToIndexQueueAdapter.cs" />
+    <Compile Include="PostToGetQueueAdapter.cs" />
     <Compile Include="BlogToFetchQueueAdapter.cs" />
     <Compile Include="Messages\BlogToFetch.cs" />
     <Compile Include="Messages\Dto\PostIndexInfo.cs" />
+    <Compile Include="Messages\Dto\VideoUrls.cs" />
     <Compile Include="Messages\PhotosToDownload.cs" />
     <Compile Include="Messages\PostsToProcess.cs" />
-    <Compile Include="Messages\VideoToDownload.cs" />
+    <Compile Include="Messages\PostToGet.cs" />
+    <Compile Include="Messages\VideosToDownload.cs" />
     <Compile Include="PostsToProcessQueueAdapter.cs" />
     <Compile Include="MediaToDownloadQueueAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

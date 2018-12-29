@@ -2,6 +2,7 @@
 using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
 using QueueInterface.Messages;
+using QueueInterface.Messages.Dto;
 using System.Collections.Generic;
 using System.Linq;
 using TableInterface;
@@ -69,9 +70,13 @@ namespace Functions
 
                 if (!string.IsNullOrEmpty(post.Video_url))
                 {
+                    VideoUrls videoUrls = new VideoUrls();
+                    videoUrls.VideoUrl = post.Video_url;
+                    videoUrls.VideoThumbUrl = post.Thumbnail_url;
+
                     videosToDownload = new VideosToDownload(post)
                     {
-                        VideoUrls = new[] { post.Video_url }
+                        VideoUrls = new[] { videoUrls }
                     };
                 }
 
@@ -110,30 +115,20 @@ namespace Functions
 
                     if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
                     {
-                        List<HtmlNode> videoNodes = htmlDoc.DocumentNode.Descendants("video").ToList();
-                        List<string> videoUrls = new List<string>();
-                        foreach (HtmlNode videoNode in videoNodes)
-                        {
-                            HtmlNode sourceNode = videoNode.Descendants("source").FirstOrDefault();
-                            if (sourceNode != null)
-                            {
-                                string url = sourceNode.Attributes["src"].Value;
-                                videoUrls.Add(url);
-                            }
-                        }
+                        List<VideoUrls> videoUrlsList = GetVideoUrls(htmlDoc, log);
 
-                        if (videoUrls.Count > 0)
+                        if (videoUrlsList.Count > 0)
                         {
                             if (videosToDownload == null)
                             {
                                 videosToDownload = new VideosToDownload(post)
                                 {
-                                    VideoUrls = videoUrls.ToArray()
+                                    VideoUrls = videoUrlsList.ToArray()
                                 };
                             }
                             else
                             {
-                                videosToDownload.VideoUrls = videosToDownload.VideoUrls.Concat(videoUrls).ToArray();
+                                videosToDownload.VideoUrls = videosToDownload.VideoUrls.Concat(videoUrlsList).ToArray();
                             }
                         }
                     }
@@ -153,9 +148,56 @@ namespace Functions
             }
         }
 
+        public List<VideoUrls> GetVideoUrls(HtmlDocument htmlDocument, TraceWriter log)
+        {
+            List<HtmlNode> videoNodes = htmlDocument.DocumentNode.Descendants("video").ToList();
+            List<VideoUrls> videoUrlsList = new List<VideoUrls>();
+            foreach (HtmlNode videoNode in videoNodes)
+            {
+                VideoUrls videoUrls = new VideoUrls();
+
+                if (!string.IsNullOrEmpty(videoNode.Attributes["poster"].Value))
+                {
+                    videoUrls.VideoThumbUrl = videoNode.Attributes["poster"].Value;
+                }
+
+                if (!string.IsNullOrEmpty(videoNode.Attributes["src"].Value))
+                {
+                    videoUrls.VideoUrl = videoNode.Attributes["src"].Value;
+                }
+                else
+                {
+                    HtmlNode sourceNode = videoNode.Descendants("source").FirstOrDefault();
+                    if (sourceNode != null)
+                    {
+                        videoUrls.VideoUrl = sourceNode.Attributes["src"].Value;
+                    }
+
+                }
+
+                if (videoUrls.VideoUrl != null && videoUrls.VideoThumbUrl != null)
+                {
+                    videoUrlsList.Add(videoUrls);
+                }
+                else
+                {
+                    if (videoUrls.VideoUrl == null)
+                    {
+                        log.Warning("Missing video url for video thumb url: " + videoUrls.VideoThumbUrl);
+                    }
+                    else
+                    {
+                        log.Warning("Missing thumb url for video url: " + videoUrls.VideoUrl);
+                    }
+                }
+            }
+
+            return videoUrlsList;
+        }
+
         private Photo GeneratePhotoFromSrc(string src)
         {
-            PhotoUrlHelper helper = PhotoUrlHelper.Parse(src);
+            PhotoUrlHelper helper = PhotoUrlHelper.ParseTumblr(src);
             if (helper == null)
             {
                 return null;
