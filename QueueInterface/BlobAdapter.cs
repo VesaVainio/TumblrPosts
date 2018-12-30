@@ -99,11 +99,11 @@ namespace BlobInterface
             }
             else
             {
-                videoBlob = serverContainer.GetBlockBlobReference(Guid.NewGuid().ToString().ToLower() + ".mp4");
+                throw new ArgumentException("Unable to parse: " + videoUrl);
             }
 
             videoBlob.Properties.CacheControl = "max-age=31536000";
-            if (videoUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+            if (videoUrlHelper.FileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
             {
                 videoBlob.Properties.ContentType = "video/mp4";
             }

@@ -3,8 +3,11 @@ using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
 using QueueInterface.Messages;
 using QueueInterface.Messages.Dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
@@ -30,7 +33,7 @@ namespace Functions
             queueAdapter.Init(log);
         }
 
-        public void ProcessPosts(IEnumerable<Post> posts, TraceWriter log, string likerBlogname = null)
+        public async Task ProcessPosts(IEnumerable<Post> posts, TraceWriter log, string likerBlogname = null)
         {
             foreach (Post post in posts)
             {
@@ -51,7 +54,6 @@ namespace Functions
                 log.Info("Post " + post.Blog_name + "/" + post.Id + " inserted to table");
 
                 PhotosToDownload photosToDownloadMessage = null;
-                VideosToDownload videosToDownload = null;
 
                 if (postEntityFromTumblr.PhotosJson != null)
                 {
@@ -68,16 +70,17 @@ namespace Functions
                     }
                 }
 
+                List<VideoUrls> videoUrlsList = new List<VideoUrls>();
+
                 if (!string.IsNullOrEmpty(post.Video_url))
                 {
-                    VideoUrls videoUrls = new VideoUrls();
-                    videoUrls.VideoUrl = post.Video_url;
-                    videoUrls.VideoThumbUrl = post.Thumbnail_url;
-
-                    videosToDownload = new VideosToDownload(post)
+                    VideoUrls videoUrls = new VideoUrls
                     {
-                        VideoUrls = new[] { videoUrls }
+                        VideoUrl = post.Video_url,
+                        VideoThumbUrl = post.Thumbnail_url
                     };
+
+                    videoUrlsList.Add(videoUrls);
                 }
 
                 if (!string.IsNullOrEmpty(post.Body))
@@ -115,21 +118,26 @@ namespace Functions
 
                     if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
                     {
-                        List<VideoUrls> videoUrlsList = GetVideoUrls(htmlDoc, log);
+                        List<VideoUrls> videoUrlsListFromBody = GetVideoUrls(htmlDoc, log);
+                        videoUrlsList.AddRange(videoUrlsListFromBody);
+                    }
+                }
 
-                        if (videoUrlsList.Count > 0)
+                Player lastPlayer = post.Player.LastOrDefault();
+
+                if (lastPlayer != null && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
+                {
+                    HtmlDocument htmlDoc = new HtmlDocument();
+                    htmlDoc.LoadHtml(lastPlayer.Embed_code);
+                    HtmlNode blockquoteNode = htmlDoc.DocumentNode.Descendants("blockquote")
+                        .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
+                    if (blockquoteNode != null)
+                    {
+                        string url = blockquoteNode.Attributes["data-instgrm-permalink"].Value;
+                        VideoUrls videoUrls = await GetInstagramVideo(url);
+                        if (videoUrls != null)
                         {
-                            if (videosToDownload == null)
-                            {
-                                videosToDownload = new VideosToDownload(post)
-                                {
-                                    VideoUrls = videoUrlsList.ToArray()
-                                };
-                            }
-                            else
-                            {
-                                videosToDownload.VideoUrls = videosToDownload.VideoUrls.Concat(videoUrlsList).ToArray();
-                            }
+                            videoUrlsList.Add(videoUrls);
                         }
                     }
                 }
@@ -140,12 +148,51 @@ namespace Functions
                     log.Info("PhotosToDownload message published");
                 }
 
-                if (videosToDownload != null)
+                if (videoUrlsList.Count > 0)
                 {
+                    VideosToDownload videosToDownload = new VideosToDownload(post)
+                    {
+                        VideoUrls = videoUrlsList.ToArray()
+                    };
+
                     queueAdapter.SendVideosToDownload(videosToDownload);
                     log.Info("VideosToDownload message published");
                 }
             }
+        }
+
+        private async Task<VideoUrls> GetInstagramVideo(string url)
+        {
+            using (HttpClient httpClient = new HttpClient())
+            {
+                HttpResponseMessage response = await httpClient.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    HtmlDocument htmlDoc = new HtmlDocument();
+                    htmlDoc.LoadHtml(content);
+                    List<HtmlNode> metaNodes = htmlDoc.DocumentNode.Descendants("meta").ToList();
+                    VideoUrls videoUrls = new VideoUrls();
+                    foreach (HtmlNode node in metaNodes)
+                    {
+                        if (node.Attributes["property"] != null && node.Attributes["property"].Value.Equals("og:image"))
+                        {
+                            videoUrls.VideoThumbUrl = node.Attributes["content"].Value;
+                        }
+                        else if (node.Attributes["property"] != null && node.Attributes["property"].Value.Equals("og:video"))
+                        {
+                            videoUrls.VideoUrl = node.Attributes["content"].Value;
+                        }
+                    }
+
+                    if (videoUrls.VideoUrl != null && videoUrls.VideoThumbUrl != null)
+                    {
+                        return videoUrls;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public List<VideoUrls> GetVideoUrls(HtmlDocument htmlDocument, TraceWriter log)
