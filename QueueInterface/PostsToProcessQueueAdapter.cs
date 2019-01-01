@@ -33,6 +33,8 @@ namespace QueueInterface
         {
             Post[] postsArray = posts.ToArray();
 
+            StripSmallPlayers(postsArray); // minimize the size by including only the largest player
+
             PostsToProcess postsToProcess = new PostsToProcess
             {
                 Posts = postsArray,
@@ -72,6 +74,18 @@ namespace QueueInterface
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             postsToProcessQueue.AddMessage(message);
             return true;
+        }
+
+        public void StripSmallPlayers(Post[] posts)
+        {
+            foreach (Post post in posts)
+            {
+                if (post.Player != null && post.Player.Length > 0)
+                {
+                    Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
+                    post.Player = new Player[] { largestPlayer };
+                }
+            }
         }
     }
 }
