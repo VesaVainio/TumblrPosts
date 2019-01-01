@@ -1,7 +1,6 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
 using TumblrPics.Model.Tumblr;
 
 namespace TableInterface.Entities
@@ -68,7 +67,7 @@ namespace TableInterface.Entities
             Width = tumblrPost.Width > 0 ? tumblrPost.Width : (int?)null;
             Heigth = tumblrPost.Heigth > 0 ? tumblrPost.Heigth : (int?)null;
 
-            PhotoOriginalUrls = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : string.Join(";", tumblrPost.Photos.Select(x => x.Alt_sizes[0].Url));
+            PhotoOriginalUrls = null;
             PhotosJson = tumblrPost.Photos == null || tumblrPost.Photos.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Photos);
 
             VideoUrl = tumblrPost.Video_url;

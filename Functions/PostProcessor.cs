@@ -37,6 +37,8 @@ namespace Functions
         {
             foreach (Post post in posts)
             {
+                SanitizePostPhotos(post); // sometimes post.Photos has Alt_sizes with length 0, needs to be sanitized
+
                 PostEntity postEntityInTable = postsTableAdapter.GetPost(post.Blog_name, post.Id.ToString());
 
                 PostEntity postEntityFromTumblr = new PostEntity(post);
@@ -123,12 +125,12 @@ namespace Functions
                     }
                 }
 
-                Player lastPlayer = post.Player.LastOrDefault();
-
-                if (lastPlayer != null && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
+                if (post.Player != null && post.Player.Length > 0 && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
                 {
+                    Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
+
                     HtmlDocument htmlDoc = new HtmlDocument();
-                    htmlDoc.LoadHtml(lastPlayer.Embed_code);
+                    htmlDoc.LoadHtml(largestPlayer.Embed_code);
                     HtmlNode blockquoteNode = htmlDoc.DocumentNode.Descendants("blockquote")
                         .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
                     if (blockquoteNode != null)
@@ -158,6 +160,14 @@ namespace Functions
                     queueAdapter.SendVideosToDownload(videosToDownload);
                     log.Info("VideosToDownload message published");
                 }
+            }
+        }
+
+        private void SanitizePostPhotos(Post post)
+        {
+            if (post.Photos != null && post.Photos.Length > 0 && post.Photos.Any(x => x.Alt_sizes.Length == 0))
+            {
+                post.Photos = post.Photos.Where(x => x.Alt_sizes.Length > 0).ToArray();
             }
         }
 
