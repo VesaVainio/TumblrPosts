@@ -2,7 +2,9 @@
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
+using System;
 using System.Configuration;
+using System.Threading.Tasks;
 using TumblrPics.Model;
 
 namespace QueueInterface
@@ -26,6 +28,16 @@ namespace QueueInterface
             string jsonMessage = JsonConvert.SerializeObject(postToGet);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             postToGetQueue.AddMessage(message);
+        }
+
+        public async Task<CloudQueueMessage> GetNextMessage()
+        {
+            return await postToGetQueue.GetMessageAsync(TimeSpan.FromMinutes(6), null, null);
+        }
+
+        public async Task DeleteMessage(CloudQueueMessage message)
+        {
+            await postToGetQueue.DeleteMessageAsync(message);
         }
     }
 }
