@@ -20,7 +20,7 @@ namespace TableInterface
             videoIndexTable = tableClient.GetTableReference("VideoIndex");
         }
 
-        public void InsertVideoIndex(string blogname, string id, DateTime date, Video video, string videoType, int bytes, double duration)
+        public void InsertVideoIndex(string blogname, string id, DateTime date, Video video, string videoType, long bytes, double duration)
         {
             VideoIndexEntity videoIndexEntity = new VideoIndexEntity(blogname, id, date, bytes)
             {

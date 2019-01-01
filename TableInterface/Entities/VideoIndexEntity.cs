@@ -9,11 +9,11 @@ namespace TableInterface.Entities
         public string ThumbUri { get; set; }
         public string VideoType { get; set; }
         public double Duration { get; set; }
-        public int Bytes { get; set; }
+        public long Bytes { get; set; }
         public string PostId { get; set; }
         public DateTime PostDate { get; set; }
 
-        public VideoIndexEntity(string blogName, string postId, DateTime postDate, int bytes)
+        public VideoIndexEntity(string blogName, string postId, DateTime postDate, long bytes)
         {
             PartitionKey = blogName;
             RowKey = postDate.ToString("yyyyMMddHHmmss") + "-" + postId + "-" + bytes;

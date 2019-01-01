@@ -1,8 +1,12 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Model.Site;
+using QueueInterface.Messages.Dto;
 using System;
 using System.Configuration;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TumblrPics.Model;
@@ -67,7 +71,7 @@ namespace BlobInterface
             throw new ArgumentException("Unexpected ending in: " + path);
         }
 
-        public async Task<Video> UploadVideoBlob(byte[] videoBytes, string blogName, string videoUrl, byte[] thumbBytes, string thumbUrl)
+        public async Task<Video> HandleVideo(VideoUrls videoUrls, string blogName)
         {
             CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference(blogName.ToLower());
             if (!await serverContainer.ExistsAsync())
@@ -82,13 +86,19 @@ namespace BlobInterface
                 await serverContainer.SetPermissionsAsync(permissions);
             }
 
-            CloudBlockBlob videoBlob = await HandleVideoBlob(videoBytes, videoUrl, serverContainer);
-            CloudBlockBlob thumbBlob = await HandleThumbBlob(thumbBytes, thumbUrl, serverContainer);
+            using (HttpClient httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("video/*"));
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
-            return new Video { Url = videoBlob.Uri.ToString(), ThumbUrl = thumbBlob.Uri.ToString() };
+                CloudBlockBlob videoBlob = await HandleVideoBlob(videoUrls.VideoUrl, serverContainer, httpClient);
+                CloudBlockBlob thumbBlob = await HandleThumbBlob(videoUrls.VideoThumbUrl, serverContainer, httpClient);
+
+                return new Video { Url = videoBlob.Uri.ToString(), ThumbUrl = thumbBlob.Uri.ToString(), Bytes = videoBlob.Properties.Length };
+            }
         }
 
-        private static async Task<CloudBlockBlob> HandleVideoBlob(byte[] videoBytes, string videoUrl, CloudBlobContainer serverContainer)
+        private static async Task<CloudBlockBlob> HandleVideoBlob(string videoUrl, CloudBlobContainer serverContainer, HttpClient httpClient)
         {
             VideoUrlHelper videoUrlHelper = VideoUrlHelper.Parse(videoUrl);
 
@@ -112,11 +122,44 @@ namespace BlobInterface
                 throw new ArgumentException("Unexpected ending in: " + videoUrl);
             }
 
-            await videoBlob.UploadFromByteArrayAsync(videoBytes, 0, videoBytes.Length);
+            var response = await httpClient.GetAsync(videoUrl);
+            response.EnsureSuccessStatusCode();
+
+            Stream sourceStream = null;
+            CloudBlobStream uploadStream = null;
+            try
+            {
+                sourceStream = await httpClient.GetStreamAsync(videoUrl);
+                uploadStream = await videoBlob.OpenWriteAsync();
+                byte[] bytes = new byte[64 * 1024];
+                int length;
+                do
+                {
+                    length = await sourceStream.ReadAsync(bytes, 0, 64 * 1024);
+                    await uploadStream.WriteAsync(bytes, 0, length);
+                }
+                while (length > 0);
+                
+            }
+            finally
+            {
+                if (sourceStream != null)
+                {
+                    sourceStream.Dispose();
+                }
+                if (uploadStream != null)
+                {
+                    await uploadStream.FlushAsync();
+                    uploadStream.Dispose();
+                }
+            }
+
+            await videoBlob.FetchAttributesAsync();
+
             return videoBlob;
         }
 
-        private static async Task<CloudBlockBlob> HandleThumbBlob(byte[] thumbBytes, string thumbUrl, CloudBlobContainer serverContainer)
+        private static async Task<CloudBlockBlob> HandleThumbBlob(string thumbUrl, CloudBlobContainer serverContainer, HttpClient httpClient)
         {
             VideoUrlHelper videoUrlHelper = VideoUrlHelper.Parse(thumbUrl);
 
@@ -133,7 +176,9 @@ namespace BlobInterface
             thumbBlob.Properties.CacheControl = "max-age=31536000";
             thumbBlob.Properties.ContentType = GetContentType(videoUrlHelper.FileName);
 
-            await thumbBlob.UploadFromByteArrayAsync(thumbBytes, 0, thumbBytes.Length);
+            Stream sourceStream = await httpClient.GetStreamAsync(thumbUrl);
+            await thumbBlob.UploadFromStreamAsync(sourceStream);
+
             return thumbBlob;
         }
 

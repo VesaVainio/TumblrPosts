@@ -54,21 +54,20 @@ namespace Functions
                 {
                     try
                     {
-                        byte[] videoBytes = await httpClient.GetByteArrayAsync(videoUrls.VideoUrl);
-                        byte[] thumbBytes = await httpClient.GetByteArrayAsync(videoUrls.VideoThumbUrl);
-                        if (videoBytes.Length > 0 && thumbBytes.Length > 0)
-                        {
-                            Video blobVideo = await blobAdapter.UploadVideoBlob(videoBytes, videosToDownload.IndexInfo.BlogName, videoUrls.VideoUrl, thumbBytes, videoUrls.VideoThumbUrl);
-                            videos.Add(blobVideo);
+                        Video blobVideo = await blobAdapter.HandleVideo(videoUrls, videosToDownload.IndexInfo.BlogName);
+                        videos.Add(blobVideo);
 
-                            videoIndexTableAdapter.InsertVideoIndex(blogname, id, date, blobVideo, videosToDownload.VideoType, videoBytes.Length, videosToDownload.Duration);
+                        videoIndexTableAdapter.InsertVideoIndex(blogname, id, date, blobVideo, videosToDownload.VideoType, blobVideo.Bytes, videosToDownload.Duration);
 
-                            log.Info("Video successfully downloaded: " + videoUrls);
-                        }
+                        log.Info("Video successfully downloaded: " + videoUrls);
                     }
                     catch (HttpRequestException ex)
                     {
-                        log.Warning("Error while downloading video " + videoUrls.VideoUrl + " - " + ex.Message);
+                        log.Warning("HTTP Error while downloading video " + videoUrls.VideoUrl + " - " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Error while downloading video ", ex);
                     }
                 }
 
