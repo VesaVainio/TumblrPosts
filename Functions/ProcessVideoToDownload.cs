@@ -75,7 +75,7 @@ namespace Functions
                 {
                     postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray());
 
-                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date)
+                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date, videosToDownload.Body)
                     {
                         Videos = JsonConvert.SerializeObject(videos)
                     };

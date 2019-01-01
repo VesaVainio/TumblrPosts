@@ -67,7 +67,7 @@ namespace Functions
                     postToGetQueueAdapter.Send(new PostToGet { Blogname = entity.PartitionKey, Id = entity.RowKey });
                 }
 
-                ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date);
+                ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.Body);
                 List<Photo> photos = null;
                 if (photosByBlogById.TryGetValue(entity.RowKey, out photos))
                 {

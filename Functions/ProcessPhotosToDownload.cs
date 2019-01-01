@@ -108,7 +108,7 @@ namespace Functions
                 postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos);
 
                 ReversePostEntity reversePost = new ReversePostEntity(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, photosToDownload.PostType,
-                    photosToDownload.IndexInfo.PostDate)
+                    photosToDownload.IndexInfo.PostDate, photosToDownload.Body)
                 {
                     Photos = JsonConvert.SerializeObject(sitePhotos)
                 };
