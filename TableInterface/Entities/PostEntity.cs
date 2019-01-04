@@ -41,6 +41,7 @@ namespace TableInterface.Entities
 
         public int? PicsDownloadLevel { get; set; }
         public int? VideosDownloadLevel { get; set; }
+        public bool PostNotFound { get; set; } // set to true if trying to get the post from Tumblr API and get a 404
 
         public PostEntity() { }
 

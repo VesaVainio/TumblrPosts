@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 
-namespace TableInterface.Entities
+namespace TableInterface.Entities.Partial
 {
     public class VideoDownloadCompleteEntity : TableEntity
     {

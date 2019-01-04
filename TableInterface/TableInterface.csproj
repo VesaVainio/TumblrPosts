@@ -194,12 +194,13 @@
   <ItemGroup>
     <Compile Include="BlogInfoTableAdapter.cs" />
     <Compile Include="Entities\BlogEntity.cs" />
+    <Compile Include="Entities\Partial\PostNotFoundEntity.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
     <Compile Include="Entities\PhotosByBlog.cs" />
     <Compile Include="Entities\PostsByBlogEntity.cs" />
     <Compile Include="Entities\ReversePostEntity.cs" />
-    <Compile Include="Entities\VideoDownloadCompleteEntity.cs" />
-    <Compile Include="Entities\PhotoDownloadCompleteEntity.cs" />
+    <Compile Include="Entities\Partial\VideoDownloadCompleteEntity.cs" />
+    <Compile Include="Entities\Partial\PhotoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\LikeIndexEntity.cs" />
     <Compile Include="Entities\VideoIndexEntity.cs" />
     <Compile Include="Entities\PhotoIndexEntity.cs" />

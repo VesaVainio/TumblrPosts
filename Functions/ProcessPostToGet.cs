@@ -8,6 +8,7 @@ using System;
 using System.Configuration;
 using System.Net.Http;
 using System.Threading.Tasks;
+using TableInterface;
 using TumblrPics.Model.Tumblr;
 
 namespace Functions
@@ -22,6 +23,9 @@ namespace Functions
 
             PostToGetQueueAdapter postToGetQueueAdapter = new PostToGetQueueAdapter();
             postToGetQueueAdapter.Init();
+
+            PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
+            postsTableAdapter.Init(log);
 
             using (HttpClient httpClient = new HttpClient())
             {
@@ -58,6 +62,12 @@ namespace Functions
                         {
                             log.Error("Limit exceeded, exiting");
                             return;
+                        }
+                        else if (response.ReasonPhrase.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            log.Error("Not found, deleting message, marking post as Not Found");
+                            postsTableAdapter.MarkPostNotFound(postToGet.Blogname, postToGet.Id);
+                            await postToGetQueueAdapter.DeleteMessage(message);
                         }
                     }
                 } while (true);

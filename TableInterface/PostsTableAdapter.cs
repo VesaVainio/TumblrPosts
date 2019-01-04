@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using TableInterface.Entities;
+using TableInterface.Entities.Partial;
 using TumblrPics.Model;
 
 namespace TableInterface
@@ -112,6 +113,19 @@ namespace TableInterface
                 RowKey = postId,
                 VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
                 VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings)
+            };
+
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            postsTable.Execute(insertOrMergeOperation);
+        }
+
+        public void MarkPostNotFound(string blogName, string postId)
+        {
+            PostNotFoundEntity entity = new PostNotFoundEntity
+            {
+                PartitionKey = blogName,
+                RowKey = postId,
+                PostNotFound = true
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
