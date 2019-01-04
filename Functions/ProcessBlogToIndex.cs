@@ -62,7 +62,8 @@ namespace Functions
 
             foreach (PostEntity entity in postEntities)
             {
-                if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && entity.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
+                if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && !entity.PostNotFound && entity.VideoType.Equals("instagram", StringComparison.OrdinalIgnoreCase) &&
+                    (!entity.VideosDownloadLevel.HasValue || entity.VideosDownloadLevel.Value < Constants.MaxVideosDownloadLevel))
                 {
                     postToGetQueueAdapter.Send(new PostToGet { Blogname = entity.PartitionKey, Id = entity.RowKey });
                 }
