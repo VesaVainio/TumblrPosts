@@ -1,12 +1,12 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
+using Model.Site;
+using Newtonsoft.Json;
 using System;
 
 namespace TableInterface.Entities
 {
     public class ReversePostEntity : TableEntity
     {
-        public string Blogname { get; set; }
-        public string Id { get; set; }
         public string Type { get; set; }
         public DateTime Date { get; set; }
         public string Body { get; set; }
@@ -23,6 +23,20 @@ namespace TableInterface.Entities
             Type = type;
             Date = date;
             Body = body;
+        }
+
+        public Post GetSitePost()
+        {
+            return new Post
+            {
+                Blogname = PartitionKey,
+                Id = RowKey,
+                Type = Type,
+                Date = Date,
+                Body = Body,
+                Photos = string.IsNullOrEmpty(Photos) ? null : JsonConvert.DeserializeObject<Photo[]>(Photos),
+                Videos = string.IsNullOrEmpty(Videos) ? null : JsonConvert.DeserializeObject<Video[]>(Videos),
+            };
         }
     }
 }

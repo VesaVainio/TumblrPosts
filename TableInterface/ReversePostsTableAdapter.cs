@@ -41,33 +41,10 @@ namespace TableInterface
             return true;
         }
 
-        public int GetPostCount(string blogName)
-        {
-            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
-            TableQuery query = new TableQuery().Where(pkFilter).Select(PartitionAndRowKey);
-            IEnumerable<DynamicTableEntity> result = reversePostsTable.ExecuteQuery(query);
-            return result.Count();
-        }
-
-        public List<ReversePostEntity> GetAll(string blogname)
-        {
-            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogname);
-            TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>().Where(pkFilter);
-            IEnumerable<ReversePostEntity> result = reversePostsTable.ExecuteQuery(query);
-            return result.ToList();
-        }
-
-        public List<ReversePostEntity> GetAll()
-        {
-            TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>();
-            IEnumerable<ReversePostEntity> result = reversePostsTable.ExecuteQuery(query);
-            return result.ToList();
-        }
-
         public List<ReversePostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
-            TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>().Where(pkFilter).Select(FrontendColumns);
+            TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>().Where(pkFilter);
             IEnumerable<ReversePostEntity> result = reversePostsTable.ExecuteQuery(query);
             return result.Skip(offset).Take(maxCount).ToList();
         }
