@@ -31,6 +31,12 @@ namespace TableInterface
             blogsTable.Execute(insertOrMergeOperation);
         }
 
+        public void InsertPostsByBlog(PostsByBlog postsByBlog)
+        {
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(postsByBlog);
+            blogsTable.Execute(insertOrMergeOperation);
+        }
+
         public async Task<BlogEntity> GetBlog(string blogname)
         {
             TableOperation retrieveOperation = TableOperation.Retrieve<BlogEntity>(blogname, "info");

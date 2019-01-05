@@ -59,7 +59,7 @@ namespace Functions
 
                 if (postEntityFromTumblr.PhotosJson != null)
                 {
-                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
                         photosToDownloadMessage = new PhotosToDownload(post)
                         {
@@ -89,7 +89,7 @@ namespace Functions
                 {
                     HtmlDocument htmlDoc = new HtmlDocument();
                     htmlDoc.LoadHtml(post.Body);
-                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
                         List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
                         List<Photo> photos = new List<Photo>(imgNodes.Count);
@@ -118,7 +118,7 @@ namespace Functions
                         }
                     }
 
-                    if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
                     {
                         List<VideoUrls> videoUrlsListFromBody = GetVideoUrls(htmlDoc, log);
                         videoUrlsList.AddRange(videoUrlsListFromBody);
@@ -213,12 +213,12 @@ namespace Functions
             {
                 VideoUrls videoUrls = new VideoUrls();
 
-                if (!string.IsNullOrEmpty(videoNode.Attributes["poster"].Value))
+                if (videoNode.Attributes["poster"] != null && !string.IsNullOrEmpty(videoNode.Attributes["poster"].Value))
                 {
                     videoUrls.VideoThumbUrl = videoNode.Attributes["poster"].Value;
                 }
 
-                if (!string.IsNullOrEmpty(videoNode.Attributes["src"].Value))
+                if (videoNode.Attributes["src"] != null && !string.IsNullOrEmpty(videoNode.Attributes["src"].Value))
                 {
                     videoUrls.VideoUrl = videoNode.Attributes["src"].Value;
                 }
@@ -227,9 +227,11 @@ namespace Functions
                     HtmlNode sourceNode = videoNode.Descendants("source").FirstOrDefault();
                     if (sourceNode != null)
                     {
-                        videoUrls.VideoUrl = sourceNode.Attributes["src"].Value;
+                        if (videoNode.Attributes["src"] != null && !string.IsNullOrEmpty(videoNode.Attributes["src"].Value))
+                        {
+                            videoUrls.VideoUrl = videoNode.Attributes["src"].Value;
+                        }
                     }
-
                 }
 
                 if (videoUrls.VideoUrl != null && videoUrls.VideoThumbUrl != null)

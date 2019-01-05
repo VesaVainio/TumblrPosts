@@ -47,22 +47,26 @@ namespace Functions
             PhotosByBlog photosByBlog = CreatePhotosByBlog(photoIndexEntities, blogToIndex.Blogname);
 
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
+            PostsByBlog postsByBlog = CreatePostsByBlog(postEntities, blogToIndex.Blogname);
 
-            log.Info("Loaded " + photoIndexEntities.Count + " photo index entities");
+            log.Info("Loaded " + postEntities.Count + " post entities");
 
-            InsertReversePosts(photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
+            InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
 
             blogInfoTableAdapter.InsertPhotosByBlog(photosByBlog);
+            blogInfoTableAdapter.InsertPostsByBlog(postsByBlog);
         }
 
-        private static void InsertReversePosts(Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
+        private static void InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
             ReversePostsTableAdapter reversePostsTableAdapter, PostToGetQueueAdapter postToGetQueueAdapter, TraceWriter log)
         {
             int index = 0;
 
+            List<ReversePostEntity> reverseEntities = new List<ReversePostEntity>(100);
+
             foreach (PostEntity entity in postEntities)
             {
-                if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && !entity.PostNotFound && entity.VideoType.Equals("instagram", StringComparison.OrdinalIgnoreCase) &&
+                if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && !entity.PostNotFound && 
                     (!entity.VideosDownloadLevel.HasValue || entity.VideosDownloadLevel.Value < Constants.MaxVideosDownloadLevel))
                 {
                     postToGetQueueAdapter.Send(new PostToGet { Blogname = entity.PartitionKey, Id = entity.RowKey });
@@ -75,14 +79,75 @@ namespace Functions
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
                 }
 
-                reversePostsTableAdapter.InsertPost(reversePost);
+                reverseEntities.Add(reversePost);
 
                 index++;
                 if (index % 100 == 0)
                 {
+                    reversePostsTableAdapter.InsertBatch(reverseEntities);
+                    reverseEntities.Clear();
                     log.Info("Inserted " + index + " reverse posts for " + entity.PartitionKey);
                 }
             }
+
+            reversePostsTableAdapter.InsertBatch(reverseEntities);
+            log.Info("Inserted " + index + " reverse posts for " + blogname);
+        }
+
+        private static PostsByBlog CreatePostsByBlog(List<PostEntity> postEntities, string blogname)
+        {
+            PostsByBlog postsByBlog = new PostsByBlog(blogname);
+
+            foreach (PostEntity post in postEntities)
+            {
+                switch (post.Type)
+                {
+                    case "Text":
+                        {
+                            postsByBlog.Text++;
+                            break;
+                        }
+                    case "Quote":
+                        {
+                            postsByBlog.Quote++;
+                            break;
+                        }
+                    case "Link":
+                        {
+                            postsByBlog.Link++;
+                            break;
+                        }
+                    case "Answer":
+                        {
+                            postsByBlog.Answer++;
+                            break;
+                        }
+                    case "Video":
+                        {
+                            postsByBlog.Video++;
+                            break;
+                        }
+                    case "Audio":
+                        {
+                            postsByBlog.Audio++;
+                            break;
+                        }
+                    case "Photo":
+                        {
+                            postsByBlog.Photo++;
+                            break;
+                        }
+                    case "Chat":
+                        {
+                            postsByBlog.Chat++;
+                            break;
+                        }
+                }
+
+                postsByBlog.TotalPosts++;
+            }
+
+            return postsByBlog;
         }
 
         private static Dictionary<string, List<Photo>> CreatePhotosByBlogById(List<PhotoIndexEntity> photoIndexEntities)

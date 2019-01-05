@@ -1,12 +1,11 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Model.Site;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using TableInterface;
 using TableInterface.Entities;
 
@@ -15,7 +14,7 @@ namespace PublicAPI
     public static class Posts
     {
         [FunctionName("Posts")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "posts/{blogname}")]HttpRequestMessage req, 
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "posts/{blogname}")]HttpRequestMessage req, 
             string blogname, TraceWriter log)
         {
             ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();

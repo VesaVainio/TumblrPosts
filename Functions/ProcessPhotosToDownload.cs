@@ -72,7 +72,7 @@ namespace Functions
                                 string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog) ? photosToDownload.IndexInfo.BlogName : photosToDownload.SourceBlog;
                                 if (photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url) != null)
                                 {
-                                    log.Info($"Photo " + altSize.Url + "already downloaded");
+                                    log.Info($"Photo " + altSize.Url + " already downloaded");
                                     break;
                                 }
 

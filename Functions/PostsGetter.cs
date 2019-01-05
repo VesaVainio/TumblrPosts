@@ -3,6 +3,7 @@ using QueueInterface;
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TableInterface;
@@ -71,6 +72,99 @@ namespace Functions
 
             BlogEntity blogEntity = new BlogEntity(blog);
             blogEntity.FetchedUntilOffset = offset;
+            blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
+            blogInfoTableAdapter.InsertBlog(blogEntity);
+
+            return new GetPostsResult
+            {
+                TotalInBlog = totalInBlog,
+                TotalReceived = totalReceived,
+                Success = success
+            };
+        }
+
+        public async Task<GetPostsResult> GetNewerPosts(TraceWriter log, string blogname, long newerThan, long timeoutSeconds = 270)
+        {
+            PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
+            postsToProcessQueueAdapter.Init(log);
+
+            BlogInfoTableAdapter blogInfoTableAdapter = new BlogInfoTableAdapter();
+            blogInfoTableAdapter.Init();
+
+            long totalInBlog = 0;
+            long totalReceived = 0;
+            BlogPosts blogPosts = null;
+            Blog blog = null;
+            bool success = true;
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                string apiKey = ConfigurationManager.AppSettings["TumblrApiKey"];
+
+                string linkUrl = null;
+
+                do
+                {
+                    string url;
+                    if (linkUrl == null)
+                    {
+                        // start from newest posts
+                        url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?before=" + FunctionUtilities.GetUnixTime(DateTime.UtcNow) + "&api_key=" + apiKey;
+                    }
+                    else
+                    {
+                        url = "https://api.tumblr.com" + linkUrl + "&api_key=" + apiKey;
+                    }
+
+                    log.Info("Making request to: " + url);
+                    HttpResponseMessage response = await httpClient.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
+                        blogPosts = tumblrResponse.Response;
+
+                        totalInBlog = blogPosts.Blog.Posts;
+                        blog = blogPosts.Blog;
+                        totalReceived += blogPosts.Posts.Count;
+                        if (blogPosts._links != null && blogPosts._links.Next != null)
+                        {
+                            linkUrl = blogPosts._links.Next.Href;
+                        }
+                        else
+                        {
+                            linkUrl = null;
+                        }
+
+                        if (blogPosts.Posts != null && blogPosts.Posts.Count > 0)
+                        {
+                            if (blogPosts.Posts.Any(x => x.Timestamp < newerThan))
+                            {
+                                // have reached the point that was gotten previously
+                                postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts.Where(x => x.Timestamp >= newerThan));
+                                break;
+                            } else
+                            {
+                                postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        success = false;
+                        break;
+                    }
+
+                    if (stopwatch.ElapsedMilliseconds > timeoutSeconds * 1000)
+                    {
+                        success = false;
+                        break;
+                    }
+                } while (linkUrl != null);
+            }
+
+            BlogEntity blogEntity = new BlogEntity(blog);
             blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
             blogInfoTableAdapter.InsertBlog(blogEntity);
 

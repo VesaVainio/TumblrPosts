@@ -195,6 +195,7 @@
     <Compile Include="BlogInfoTableAdapter.cs" />
     <Compile Include="Entities\BlogEntity.cs" />
     <Compile Include="Entities\Partial\PostNotFoundEntity.cs" />
+    <Compile Include="Entities\PostsByBlog.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
     <Compile Include="Entities\PhotosByBlog.cs" />
     <Compile Include="Entities\PostsByBlogEntity.cs" />

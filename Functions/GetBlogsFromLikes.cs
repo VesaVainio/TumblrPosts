@@ -60,30 +60,47 @@ namespace Functions
                     {
                         TumblrResponse<BlogInfo> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogInfo>>();
                         Blog blog = tumblrResponse.Response.Blog;
-                        BlogEntity blogEntity = new BlogEntity(blog);
-                        blogInfoTableAdapter.InsertBlog(blogEntity);
+                        BlogEntity blogEntity = await blogInfoTableAdapter.GetBlog(blogStatsRow.Blogname);
 
                         blogStatsRow.HadPostCount = postsTableAdapter.GetPostCount(blogStatsRow.Blogname);
                         blogStatsRow.TotalPostCount = blog.Posts;
-                        
                         long difference = blog.Posts - blogStatsRow.HadPostCount;
-                        if (blogStatsRow.HadPostCount > Constants.MaxPostsToFetch)
+                        bool fetch = false;
+                        long? newerThan = null;
+
+                        if (blogEntity != null && blogEntity.Updated < blog.Updated)
+                        {
+                            log.Info("Blog " + blogStatsRow.Blogname + " to be downloaded, has new posts");
+                            fetch = true;
+                            newerThan = blogEntity.Updated;
+                        }
+                        else if (blogStatsRow.HadPostCount > Constants.MaxPostsToFetch)
                         {
                             log.Info("Already fetched " + blogStatsRow.HadPostCount + " posts from blog");
                         }
                         else if (difference > 5)
                         {
                             log.Info("Blog " + blogStatsRow.Blogname + " to be downloaded, missing " + difference + " posts");
-                            blogToFetchQueueAdapter.SendBlogToFetch(new BlogToFetch {
-                                Blogname = blog.Name,
-                                TotalPostCount = blog.Posts
-                            });
-                            toDownload.Add(blogStatsRow);
+                            fetch = true;
                         }
                         else
                         {
                             log.Info("Blog " + blogStatsRow.Blogname + " already downloaded (difference " + difference + ")");
                         }
+
+                        if (fetch)
+                        {
+                            blogToFetchQueueAdapter.SendBlogToFetch(new BlogToFetch
+                            {
+                                Blogname = blog.Name,
+                                TotalPostCount = blog.Posts,
+                                NewerThan = newerThan
+                            });
+                            toDownload.Add(blogStatsRow);
+                        }
+
+                        blogEntity = new BlogEntity(blog);
+                        blogInfoTableAdapter.InsertBlog(blogEntity);
                     }
                 }
             }

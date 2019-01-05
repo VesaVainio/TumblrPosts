@@ -9,13 +9,14 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
+using TumblrPics.Model;
 
 namespace Functions
 {
     public static class ProcessBlogToFetch
     {
         [FunctionName("ProcessBlogToFetch")]
-        public static async Task Run([TimerTrigger("0 30 */2 * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 25 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
@@ -30,6 +31,8 @@ namespace Functions
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
+            bool success = false;
+
             do
             {
                 CloudQueueMessage message = await blogToFetchQueueAdapter.GetNextMessage();
@@ -42,24 +45,43 @@ namespace Functions
 
                 BlogEntity blogEntity = await blogInfoTableAdapter.GetBlog(blogToFetch.Blogname);
 
-                int offset = 0;
-                if (blogEntity != null && blogEntity.FetchedUntilOffset.HasValue)
-                {
-                    offset = blogEntity.FetchedUntilOffset.Value;
-                }
-
                 long timeoutLeft = 270 - (stopwatch.ElapsedMilliseconds / 1000);
                 if (timeoutLeft < 10)
                 {
                     return;
                 }
 
-                result = await postsGetter.GetPosts(log, blogToFetch.Blogname, offset, timeoutSeconds: timeoutLeft);
-                if (result.Success)
+                success = false;
+
+                if (blogToFetch.NewerThan.HasValue)
+                {
+                    result = await postsGetter.GetNewerPosts(log, blogToFetch.Blogname, blogToFetch.NewerThan.Value, timeoutLeft);
+                    if (result.Success)
+                    {
+                        success = true;
+                    }
+                }
+
+                int offset = 0;
+                if (blogEntity != null && blogEntity.FetchedUntilOffset.HasValue)
+                {
+                    offset = blogEntity.FetchedUntilOffset.Value;
+                }
+
+                if (!blogEntity.FetchedUntilOffset.HasValue || blogEntity.FetchedUntilOffset.Value < Constants.MaxPostsToFetch)
+                {
+                    result = await postsGetter.GetPosts(log, blogToFetch.Blogname, offset, timeoutSeconds: timeoutLeft);
+                    if (result.Success)
+                    {
+                        success = true;
+                    }
+                }
+                
+                if (success)
                 {
                     await blogToFetchQueueAdapter.DeleteMessage(message);
                 }
-            } while (result != null && result.Success);
+            } while (success);
         }
     }
 }

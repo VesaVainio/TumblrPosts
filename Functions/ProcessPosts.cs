@@ -2,6 +2,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
+using System;
 using System.Threading.Tasks;
 using TumblrPics.Model;
 
@@ -19,7 +20,15 @@ namespace Functions
             PostProcessor postProcessor = new PostProcessor();
             postProcessor.Init(log);
 
-            await postProcessor.ProcessPosts(postsToProcess.Posts, log, postsToProcess.LikerBlogname);
+            try
+            {
+                await postProcessor.ProcessPosts(postsToProcess.Posts, log, postsToProcess.LikerBlogname);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error", ex);
+                throw;
+            }
         }
     }
 }

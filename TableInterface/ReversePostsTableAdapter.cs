@@ -41,6 +41,29 @@ namespace TableInterface
             return true;
         }
 
+        public void InsertBatch(IEnumerable<ReversePostEntity> reversePostEntities)
+        {
+            TableBatchOperation batchOperation = new TableBatchOperation();
+
+            int count = 0;
+            foreach (ReversePostEntity item in reversePostEntities)
+            {
+                batchOperation.InsertOrMerge(item);
+                count++;
+                if (count == 100)
+                {
+                    reversePostsTable.ExecuteBatch(batchOperation);
+                    batchOperation = new TableBatchOperation();
+                    count = 0;
+                }
+            }
+
+            if (count > 0)
+            {
+                reversePostsTable.ExecuteBatch(batchOperation);
+            }
+        }
+
         public List<ReversePostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
