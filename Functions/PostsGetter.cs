@@ -164,9 +164,12 @@ namespace Functions
                 } while (linkUrl != null);
             }
 
-            BlogEntity blogEntity = new BlogEntity(blog);
-            blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
-            blogInfoTableAdapter.InsertBlog(blogEntity);
+            if (blog != null)
+            {
+                BlogEntity blogEntity = new BlogEntity(blog);
+                blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
+                blogInfoTableAdapter.InsertBlog(blogEntity);
+            }
 
             return new GetPostsResult
             {
