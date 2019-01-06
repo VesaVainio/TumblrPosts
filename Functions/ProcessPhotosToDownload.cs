@@ -44,6 +44,10 @@ namespace Functions
 
                 List<Model.Site.Photo> sitePhotos = new List<Model.Site.Photo>();
 
+                string blogname = photosToDownload.IndexInfo.BlogName;
+                string id = photosToDownload.IndexInfo.PostId;
+                DateTime date = photosToDownload.IndexInfo.PostDate;
+
                 using (HttpClient httpClient = new HttpClient())
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
@@ -70,31 +74,27 @@ namespace Functions
                                 }
 
                                 string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog) ? photosToDownload.IndexInfo.BlogName : photosToDownload.SourceBlog;
-                                if (photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url) != null)
+                                PhotoUrlIndexEntity urlIndexEntity = photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url);
+                                if (urlIndexEntity != null) // photo already downloaded
                                 {
-                                    log.Info($"Photo " + altSize.Url + " already downloaded");
-                                    break;
-                                }
-
-                                byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
-                                if (photoBytes.Length > 0)
-                                {
-                                    Uri blobUri = await blobAdapter.UploadPhotoBlob(urlHelper, photoBytes, isOriginal);
-
-                                    AddSizeToSitePhoto(sitePhoto, blobUri, altSize);
-
-                                    string blogname = photosToDownload.IndexInfo.BlogName;
-                                    string id = photosToDownload.IndexInfo.PostId;
-                                    DateTime date = photosToDownload.IndexInfo.PostDate;
-
-                                    photoIndexTableAdapter.InsertPhotoIndex(blogname, id, date, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size, 
-                                        altSize.Width, altSize.Height, altSize.Url);
+                                    AddSizeToSitePhoto(sitePhoto, urlIndexEntity.BlobUrl, altSize); // need this to produce correct sitePhotos
                                     isOriginal = false;
                                 }
-                            }
-                            else
-                            {
-                                //log.Info($"Skipping AltSize with width {altSize.Width}");
+                                else // photo not downloaded
+                                {
+                                    byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
+                                    if (photoBytes.Length > 0)
+                                    {
+                                        Uri blobUri = await blobAdapter.UploadPhotoBlob(urlHelper, photoBytes, isOriginal);
+
+                                        AddSizeToSitePhoto(sitePhoto, blobUri.ToString(), altSize);
+
+                                        photoIndexTableAdapter.InsertPhotoIndex(blogname, id, date, photosToDownload.SourceBlog, blobUri.ToString(), urlHelper.Name, urlHelper.Size,
+                                            altSize.Width, altSize.Height, altSize.Url);
+                                        isOriginal = false;
+                                        log.Info("Downloaded photo from: " + altSize.Url);
+                                    }
+                                }
                             }
                         }
 
@@ -120,9 +120,9 @@ namespace Functions
             }
         }
 
-        private static void AddSizeToSitePhoto(Model.Site.Photo sitePhoto, Uri blobUri, AltSize altSize)
+        private static void AddSizeToSitePhoto(Model.Site.Photo sitePhoto, string blobUrl, AltSize altSize)
         {
-            PhotoUrlHelper urlHelper = PhotoUrlHelper.ParsePicai(blobUri.ToString());
+            PhotoUrlHelper urlHelper = PhotoUrlHelper.ParsePicai(blobUrl);
 
             if (urlHelper != null) {
 
@@ -134,7 +134,7 @@ namespace Functions
                     Width = altSize.Width
                 };
 
-                sitePhoto.Sizes.Concat(new PhotoSize[] { photoSize });
+                sitePhoto.Sizes = sitePhoto.Sizes.Concat(new PhotoSize[] { photoSize }).ToArray();
             }
         }
     }
