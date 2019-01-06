@@ -18,7 +18,7 @@ namespace Functions
     public class PostProcessor
     {
         private PostsTableAdapter postsTableAdapter;
-        private LikeIndexTableAdapter LikeIndexTableAdapter;
+        private LikeIndexTableAdapter likeIndexTableAdapter;
         private MediaToDownloadQueueAdapter queueAdapter;
 
         public void Init(TraceWriter log)
@@ -26,8 +26,8 @@ namespace Functions
             postsTableAdapter = new PostsTableAdapter();
             postsTableAdapter.Init(log);
 
-            LikeIndexTableAdapter = new LikeIndexTableAdapter();
-            LikeIndexTableAdapter.Init();
+            likeIndexTableAdapter = new LikeIndexTableAdapter();
+            likeIndexTableAdapter.Init();
 
             queueAdapter = new MediaToDownloadQueueAdapter();
             queueAdapter.Init(log);
@@ -50,7 +50,7 @@ namespace Functions
 
                 if (likerBlogname != null && post.Liked_Timestamp.HasValue)
                 {
-                    LikeIndexTableAdapter.InsertLikeIndex(likerBlogname, post.Liked_Timestamp.ToString(), post.Blog_name, post.Id.ToString(), post.Reblog_key);
+                    likeIndexTableAdapter.InsertLikeIndex(likerBlogname, post.Liked_Timestamp.ToString(), post.Blog_name, post.Id.ToString(), post.Reblog_key);
                 }
 
                 log.Info("Post " + post.Blog_name + "/" + post.Id + " inserted to table");
@@ -122,24 +122,24 @@ namespace Functions
                     {
                         List<VideoUrls> videoUrlsListFromBody = GetVideoUrls(htmlDoc, log);
                         videoUrlsList.AddRange(videoUrlsListFromBody);
-                    }
-                }
 
-                if (post.Player != null && post.Player.Length > 0 && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
-                {
-                    Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
-
-                    HtmlDocument htmlDoc = new HtmlDocument();
-                    htmlDoc.LoadHtml(largestPlayer.Embed_code);
-                    HtmlNode blockquoteNode = htmlDoc.DocumentNode.Descendants("blockquote")
-                        .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
-                    if (blockquoteNode != null)
-                    {
-                        string url = blockquoteNode.Attributes["data-instgrm-permalink"].Value;
-                        VideoUrls videoUrls = await GetInstagramVideo(url);
-                        if (videoUrls != null)
+                        if (post.Player != null && post.Player.Length > 0 && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
                         {
-                            videoUrlsList.Add(videoUrls);
+                            Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
+
+                            HtmlDocument playerHtmlDoc = new HtmlDocument();
+                            playerHtmlDoc.LoadHtml(largestPlayer.Embed_code);
+                            HtmlNode blockquoteNode = playerHtmlDoc.DocumentNode.Descendants("blockquote")
+                                .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
+                            if (blockquoteNode != null)
+                            {
+                                string url = blockquoteNode.Attributes["data-instgrm-permalink"].Value;
+                                VideoUrls videoUrls = await GetInstagramVideo(url);
+                                if (videoUrls != null)
+                                {
+                                    videoUrlsList.Add(videoUrls);
+                                }
+                            }
                         }
                     }
                 }
@@ -163,7 +163,7 @@ namespace Functions
             }
         }
 
-        private void SanitizePostPhotos(Post post)
+        private static void SanitizePostPhotos(Post post)
         {
             if (post.Photos != null && post.Photos.Length > 0 && post.Photos.Any(x => x.Alt_sizes.Length == 0))
             {
@@ -171,7 +171,7 @@ namespace Functions
             }
         }
 
-        private async Task<VideoUrls> GetInstagramVideo(string url)
+        private static async Task<VideoUrls> GetInstagramVideo(string url)
         {
             using (HttpClient httpClient = new HttpClient())
             {
@@ -254,7 +254,7 @@ namespace Functions
             return videoUrlsList;
         }
 
-        private Photo GeneratePhotoFromSrc(string src)
+        private static Photo GeneratePhotoFromSrc(string src)
         {
             PhotoUrlHelper helper = PhotoUrlHelper.ParseTumblr(src);
             if (helper == null)
