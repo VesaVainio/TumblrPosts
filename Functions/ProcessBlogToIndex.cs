@@ -48,6 +48,7 @@ namespace Functions
 
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
             PostsByBlog postsByBlog = CreatePostsByBlog(postEntities, blogToIndex.Blogname);
+            UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, log);
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
@@ -55,6 +56,40 @@ namespace Functions
 
             blogInfoTableAdapter.InsertPhotosByBlog(photosByBlog);
             blogInfoTableAdapter.InsertPostsByBlog(postsByBlog);
+        }
+
+        private static void UpdatePostEntities(string blogname, List<PostEntity> postEntities,
+            Dictionary<string, List<Photo>> photosByBlogById, PostsTableAdapter postsTableAdapter, TraceWriter log)
+        {
+            int index = 0;
+            List<PostEntity> toUpdate = new List<PostEntity>(100);
+
+            foreach (PostEntity postEntity in postEntities)
+            {
+                if (postEntity.PicsDownloadLevel < 4)
+                {
+                    if (photosByBlogById.TryGetValue(postEntity.RowKey, out List<Photo> photos))
+                    {
+                        postEntity.PhotoBlobUrls = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
+                        postEntity.PicsDownloadLevel = Constants.MaxPicsDownloadLevel;
+                        toUpdate.Add(postEntity);
+
+                        index++;
+                        if (index % 100 == 0)
+                        {
+                            postsTableAdapter.InsertBatch(toUpdate);
+                            toUpdate.Clear();
+                            log.Info($"Updated {index} posts for {blogname}");
+                        }
+                    }
+                }                
+            }
+
+            if (toUpdate.Count > 0)
+            {
+                postsTableAdapter.InsertBatch(toUpdate);
+                log.Info($"Updated {index} posts for {blogname}");
+            }
         }
 
         private static void InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,

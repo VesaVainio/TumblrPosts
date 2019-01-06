@@ -47,6 +47,29 @@ namespace TableInterface
             return true;
         }
 
+        public void InsertBatch(IEnumerable<PostEntity> postEntities)
+        {
+            TableBatchOperation batchOperation = new TableBatchOperation();
+
+            int count = 0;
+            foreach (PostEntity item in postEntities)
+            {
+                batchOperation.InsertOrMerge(item);
+                count++;
+                if (count == 100)
+                {
+                    postsTable.ExecuteBatch(batchOperation);
+                    batchOperation = new TableBatchOperation();
+                    count = 0;
+                }
+            }
+
+            if (count > 0)
+            {
+                postsTable.ExecuteBatch(batchOperation);
+            }
+        }
+
         public PostEntity GetPost(string blogName, string postId)
         {
             TableOperation retrieveOperation = TableOperation.Retrieve<PostEntity>(blogName, postId);
