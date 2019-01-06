@@ -74,15 +74,38 @@ namespace Functions
 
                 List<VideoUrls> videoUrlsList = new List<VideoUrls>();
 
-                if (!string.IsNullOrEmpty(post.Video_url))
+                if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel == null ||
+                    postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
                 {
-                    VideoUrls videoUrls = new VideoUrls
+                    if (!string.IsNullOrEmpty(post.Video_url))
                     {
-                        VideoUrl = post.Video_url,
-                        VideoThumbUrl = post.Thumbnail_url
-                    };
+                        VideoUrls videoUrls = new VideoUrls
+                        {
+                            VideoUrl = post.Video_url,
+                            VideoThumbUrl = post.Thumbnail_url
+                        };
 
-                    videoUrlsList.Add(videoUrls);
+                        videoUrlsList.Add(videoUrls);
+                    }
+
+                    if (post.Player != null && post.Player.Length > 0 && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
+
+                        HtmlDocument playerHtmlDoc = new HtmlDocument();
+                        playerHtmlDoc.LoadHtml(largestPlayer.Embed_code);
+                        HtmlNode blockquoteNode = playerHtmlDoc.DocumentNode.Descendants("blockquote")
+                            .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
+                        if (blockquoteNode != null)
+                        {
+                            string url = blockquoteNode.Attributes["data-instgrm-permalink"].Value;
+                            VideoUrls videoUrls = await GetInstagramVideo(url);
+                            if (videoUrls != null)
+                            {
+                                videoUrlsList.Add(videoUrls);
+                            }
+                        }
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(post.Body))
@@ -122,25 +145,6 @@ namespace Functions
                     {
                         List<VideoUrls> videoUrlsListFromBody = GetVideoUrls(htmlDoc, log);
                         videoUrlsList.AddRange(videoUrlsListFromBody);
-
-                        if (post.Player != null && post.Player.Length > 0 && post.Video_type.Equals("instagram", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Player largestPlayer = post.Player.OrderBy(x => x.Width).Last();
-
-                            HtmlDocument playerHtmlDoc = new HtmlDocument();
-                            playerHtmlDoc.LoadHtml(largestPlayer.Embed_code);
-                            HtmlNode blockquoteNode = playerHtmlDoc.DocumentNode.Descendants("blockquote")
-                                .FirstOrDefault(x => !string.IsNullOrEmpty(x.Attributes["data-instgrm-permalink"].Value));
-                            if (blockquoteNode != null)
-                            {
-                                string url = blockquoteNode.Attributes["data-instgrm-permalink"].Value;
-                                VideoUrls videoUrls = await GetInstagramVideo(url);
-                                if (videoUrls != null)
-                                {
-                                    videoUrlsList.Add(videoUrls);
-                                }
-                            }
-                        }
                     }
                 }
 
