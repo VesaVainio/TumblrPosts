@@ -64,10 +64,12 @@ namespace Functions
                     catch (HttpRequestException ex)
                     {
                         log.Warning("HTTP Error while downloading video " + videoUrls.VideoUrl + " - " + ex.Message);
+                        postsTableAdapter.MarkWithVideoDownloadError(blogname, id, ex.Message);
                     }
                     catch (Exception ex)
                     {
                         log.Error("Error while downloading video ", ex);
+                        throw;
                     }
                 }
 

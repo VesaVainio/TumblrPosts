@@ -142,6 +142,20 @@ namespace TableInterface
             postsTable.Execute(insertOrMergeOperation);
         }
 
+        public void MarkWithVideoDownloadError(string blogName, string postId, string errorPhrase)
+        {
+            VideoDownloadCompleteEntity entity = new VideoDownloadCompleteEntity
+            {
+                PartitionKey = blogName,
+                RowKey = postId,
+                VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
+                VideoDownloadError = errorPhrase
+            };
+
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            postsTable.Execute(insertOrMergeOperation);
+        }
+
         public void MarkPostNotFound(string blogName, string postId)
         {
             PostNotFoundEntity entity = new PostNotFoundEntity

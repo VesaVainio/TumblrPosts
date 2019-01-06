@@ -6,5 +6,6 @@ namespace TableInterface.Entities.Partial
     {
         public int VideosDownloadLevel { get; set; }
         public string VideoBlobUrls { get; set; }
+        public string VideoDownloadError { get; set; }
     }
 }
