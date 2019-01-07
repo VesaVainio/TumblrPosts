@@ -7,6 +7,8 @@ using QueueInterface.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HtmlAgilityPack;
+using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
@@ -39,6 +41,9 @@ namespace Functions
             BlogInfoTableAdapter blogInfoTableAdapter = new BlogInfoTableAdapter();
             blogInfoTableAdapter.Init();
 
+            MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter = new MediaToDownloadQueueAdapter();
+            mediaToDownloadQueueAdapter.Init(log);
+
             List<PhotoIndexEntity> photoIndexEntities = photoIndexTableAdapter.GetAll(blogToIndex.Blogname);
 
             log.Info("Loaded " + photoIndexEntities.Count + " photo index entities");
@@ -48,7 +53,7 @@ namespace Functions
 
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
             PostsByBlog postsByBlog = CreatePostsByBlog(postEntities, blogToIndex.Blogname);
-            UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, log);
+            UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, mediaToDownloadQueueAdapter, log);
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
@@ -59,7 +64,8 @@ namespace Functions
         }
 
         private static void UpdatePostEntities(string blogname, List<PostEntity> postEntities,
-            Dictionary<string, List<Photo>> photosByBlogById, PostsTableAdapter postsTableAdapter, TraceWriter log)
+            Dictionary<string, List<Photo>> photosByBlogById, PostsTableAdapter postsTableAdapter,
+            MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
         {
             int index = 0;
             List<PostEntity> toUpdate = new List<PostEntity>(100);
@@ -82,6 +88,32 @@ namespace Functions
                             log.Info($"Updated {index} posts for {blogname}");
                         }
                     }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(postEntity.PhotosJson))
+                        {
+                            SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(postEntity.PhotosJson));
+                        }
+                        else if (!string.IsNullOrEmpty(postEntity.Body))
+                        {
+                            HtmlDocument htmlDoc = new HtmlDocument();
+                            string unescapedBody = JsonConvert.DeserializeObject<string>(postEntity.Body);
+                            htmlDoc.LoadHtml(unescapedBody);
+                            List<TumblrPics.Model.Tumblr.Photo> photosFromHtml = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
+                            if (photosFromHtml.Count > 0)
+                            {
+                                SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, photosFromHtml.ToArray());
+                            }
+                            else
+                            {
+                                log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson and Body with photos");
+                            }
+                        }
+                        else
+                        {
+                            log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson");
+                        }
+                    }
                 }                
             }
 
@@ -90,6 +122,23 @@ namespace Functions
                 postsTableAdapter.InsertBatch(toUpdate);
                 log.Info($"Updated {index} posts for {blogname}");
             }
+        }
+
+        private static void SendPhotosToDownload(MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, PostEntity postEntity, TumblrPics.Model.Tumblr.Photo[] photos)
+        {
+            mediaToDownloadQueueAdapter.SendPhotosToDownload(new PhotosToDownload
+            {
+                IndexInfo = new PostIndexInfo
+                {
+                    BlogName = postEntity.PartitionKey, PostId = postEntity.RowKey,
+                    PostDate = postEntity.Date
+                },
+                ReblogKey = string.IsNullOrEmpty(postEntity.ReblogKey) ? null : postEntity.ReblogKey,
+                SourceBlog = string.IsNullOrEmpty(postEntity.SourceTitle) ? null : postEntity.SourceTitle,
+                PostType = postEntity.Type,
+                Body = postEntity.Body,
+                Photos = photos
+            });
         }
 
         private static void InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
@@ -108,8 +157,7 @@ namespace Functions
                 }
 
                 ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.Body);
-                List<Photo> photos = null;
-                if (photosByBlogById.TryGetValue(entity.RowKey, out photos))
+                if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
                 }
@@ -194,13 +242,12 @@ namespace Functions
                 PhotoUrlHelper urlHelper = PhotoUrlHelper.ParsePicai(entity.Uri);
                 if (urlHelper != null)
                 {
-                    List<Photo> photosForId = null;
-                    if (currentDictionary.TryGetValue(entity.PostId, out photosForId))
+                    if (currentDictionary.TryGetValue(entity.PostId, out List<Photo> photosForId))
                     {
                         Photo photo = photosForId.FirstOrDefault(x => x.Name.Equals(urlHelper.Name));
                         if (photo == null)
                         {
-                            photo = createPhoto(urlHelper, entity);
+                            photo = CreatePhoto(urlHelper, entity);
                             photosForId.Add(photo);
                         }
                         else
@@ -212,7 +259,7 @@ namespace Functions
                     else
                     {
                         photosForId = new List<Photo>();
-                        Photo photo = createPhoto(urlHelper, entity);
+                        Photo photo = CreatePhoto(urlHelper, entity);
                         photosForId.Add(photo);
                         currentDictionary.Add(entity.PostId, photosForId);
                     }
@@ -260,6 +307,7 @@ namespace Functions
                 {
                     currentBlog.PhotosWithWidthCount += 1;
                     currentBlog.TotalWidth += entity.Width;
+                    // ReSharper disable once PossibleLossOfFraction - fraction not needed here
                     currentBlog.AverageWidth = currentBlog.TotalWidth / currentBlog.PhotosWithWidthCount;
                 }
             }
@@ -267,7 +315,7 @@ namespace Functions
             return currentBlog;
         }
 
-        private static Photo createPhoto(PhotoUrlHelper urlHelper, PhotoIndexEntity entity)
+        private static Photo CreatePhoto(PhotoUrlHelper urlHelper, PhotoIndexEntity entity)
         {
             return new Photo
             {

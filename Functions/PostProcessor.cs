@@ -114,17 +114,8 @@ namespace Functions
                     htmlDoc.LoadHtml(post.Body);
                     if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
-                        List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
-                        List<Photo> photos = new List<Photo>(imgNodes.Count);
-                        foreach (HtmlNode imgNode in imgNodes)
-                        {
-                            string url = imgNode.Attributes["src"].Value;
-                            Photo photo = GeneratePhotoFromSrc(url);
-                            if (photo != null)
-                            {
-                                photos.Add(photo);
-                            }
-                        }
+                        List<Photo> photos = ExctractPhotosFromHtml(htmlDoc);
+
                         if (photos.Count > 0)
                         {
                             if (photosToDownloadMessage == null)
@@ -165,6 +156,23 @@ namespace Functions
                     log.Info("VideosToDownload message published");
                 }
             }
+        }
+
+        public static List<Photo> ExctractPhotosFromHtml(HtmlDocument htmlDoc)
+        {
+            List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
+            List<Photo> photos = new List<Photo>(imgNodes.Count);
+            foreach (HtmlNode imgNode in imgNodes)
+            {
+                string url = imgNode.Attributes["src"].Value;
+                Photo photo = GeneratePhotoFromSrc(url);
+                if (photo != null)
+                {
+                    photos.Add(photo);
+                }
+            }
+
+            return photos;
         }
 
         private static void SanitizePostPhotos(Post post)
@@ -266,7 +274,7 @@ namespace Functions
                 return null;
             }
 
-            int[] sizes = { 1280, 640, 500 };
+            int[] sizes = { 1280, 640, 250 };
             Photo photo = new Photo();
             List<AltSize> altSizes = new List<AltSize>();
 
