@@ -237,12 +237,9 @@ namespace Functions
                 else
                 {
                     HtmlNode sourceNode = videoNode.Descendants("source").FirstOrDefault();
-                    if (sourceNode != null)
+                    if (sourceNode?.Attributes["src"] != null && !string.IsNullOrEmpty(sourceNode.Attributes["src"].Value))
                     {
-                        if (videoNode.Attributes["src"] != null && !string.IsNullOrEmpty(videoNode.Attributes["src"].Value))
-                        {
-                            videoUrls.VideoUrl = videoNode.Attributes["src"].Value;
-                        }
+                        videoUrls.VideoUrl = sourceNode.Attributes["src"].Value;
                     }
                 }
 
