@@ -59,7 +59,7 @@ namespace Functions
 
                         videoIndexTableAdapter.InsertVideoIndex(blogname, id, date, blobVideo, videosToDownload.VideoType, blobVideo.Bytes, videosToDownload.Duration);
 
-                        log.Info("Video successfully downloaded: " + videoUrls);
+                        log.Info("Video successfully downloaded: " + videoUrls.VideoUrl);
                     }
                     catch (HttpRequestException ex)
                     {
