@@ -117,6 +117,10 @@ namespace BlobInterface
             {
                 videoBlob.Properties.ContentType = "video/mp4";
             }
+            else if (videoUrlHelper.FileName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase))
+            {
+                videoBlob.Properties.ContentType = "video/quicktime";
+            }
             else
             {
                 throw new ArgumentException("Unexpected ending in: " + videoUrl);
