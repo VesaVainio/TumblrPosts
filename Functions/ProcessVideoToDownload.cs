@@ -1,4 +1,3 @@
-using BlobInterface;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Model.Site;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using QueueInterface;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;

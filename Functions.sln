@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueInterface", "QueueInte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Frontend", "Frontend\Frontend.csproj", "{F110540E-C57B-40FC-A360-EAAFDFE6095F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicAPI", "PublicAPI\PublicAPI.csproj", "{B60D1C8B-C3A2-42D7-955C-DBDE97482501}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublicAPI", "PublicAPI\PublicAPI.csproj", "{B60D1C8B-C3A2-42D7-955C-DBDE97482501}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

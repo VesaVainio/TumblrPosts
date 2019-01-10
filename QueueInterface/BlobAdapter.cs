@@ -3,15 +3,18 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Model.Site;
 using QueueInterface.Messages.Dto;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs.Host;
+using QueueInterface.Messages;
 using TumblrPics.Model;
 
-namespace BlobInterface
+namespace QueueInterface
 {
     public class BlobAdapter
     {
@@ -22,6 +25,78 @@ namespace BlobInterface
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             cloudBlobClient = storageAccount.CreateCloudBlobClient();
+        }
+
+        public Dictionary<string, List<string>> GetBlobsByContainerMissingContentType()
+        {
+            IEnumerable<CloudBlobContainer> containers = cloudBlobClient.ListContainers();
+            Dictionary<string, List<string>> blobsByContainer = new Dictionary<string, List<string>>();
+            foreach (CloudBlobContainer container in containers)
+            {
+                if (container.Name.Equals("azure-webjobs-hosts", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                IEnumerable<IListBlobItem> blobs = cloudBlobClient.GetContainerReference(container.Name).ListBlobs(null, true, BlobListingDetails.Metadata);
+                List<string> updateList = new List<string>();
+                foreach (IListBlobItem item in blobs)
+                {
+                    if (item.GetType() == typeof(CloudBlockBlob))
+                    {
+                        CloudBlockBlob blob = (CloudBlockBlob)item;
+                        if (string.IsNullOrEmpty(blob.Properties.ContentType) || blob.Properties.ContentType.Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase) 
+                                                                              || string.IsNullOrEmpty(blob.Properties.CacheControl))
+                        {
+                            updateList.Add(blob.Name);
+                        }
+                    }
+                }
+
+                if (updateList.Count > 0)
+                {
+                    blobsByContainer.Add(container.Name, updateList);
+                }
+            }
+
+            return blobsByContainer;
+        }
+
+        public void FixBlobs(BlobsToFix blobsToFix, TraceWriter log)
+        {
+            CloudBlobContainer container = cloudBlobClient.GetContainerReference(blobsToFix.Container);
+
+            foreach (string blobName in blobsToFix.BlobNames)
+            {
+                CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+                blob.Properties.CacheControl = "max-age=31536000";
+                if (blobName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+                {
+                    blob.Properties.ContentType = "image/jpg";
+                }
+                else if (blobName.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
+                {
+                    blob.Properties.ContentType = "image/gif";
+                }
+                else if (blobName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                {
+                    blob.Properties.ContentType = "image/png";
+                }
+                else if (blobName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+                {
+                    blob.Properties.ContentType = "video/mp4";
+                }
+                else if (blobName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase))
+                {
+                    blob.Properties.ContentType = "video/quicktime";
+                }
+                else
+                {
+                    log.Warning($"Unknown ending in {blobName}");
+                }
+
+                blob.SetProperties();
+            }
         }
 
         public async Task<Uri> UploadPhotoBlob(PhotoUrlHelper urlHelper, byte[] bytes, bool isOriginal)

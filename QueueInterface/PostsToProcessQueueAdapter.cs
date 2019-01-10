@@ -48,10 +48,10 @@ namespace QueueInterface
                 {
                     int half = postsArray.Length / 2;
 
-                    Post[] posts1 = posts.Take(half).ToArray();
+                    Post[] posts1 = postsArray.Take(half).ToArray();
                     SendPostsToProcess(posts1, likerBlogName);
 
-                    Post[] posts2 = posts.Skip(half).Take(postsArray.Length - half).ToArray();
+                    Post[] posts2 = postsArray.Skip(half).Take(postsArray.Length - half).ToArray();
                     SendPostsToProcess(posts2, likerBlogName);
 
                     return true;

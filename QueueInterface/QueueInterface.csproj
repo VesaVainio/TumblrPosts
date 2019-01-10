@@ -129,6 +129,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobAdapter.cs" />
+    <Compile Include="BlobsToFixQueueAdapter.cs" />
+    <Compile Include="Messages\BlobsToFix.cs" />
     <Compile Include="Messages\BlogToIndex.cs" />
     <Compile Include="BlogToIndexQueueAdapter.cs" />
     <Compile Include="PostToGetQueueAdapter.cs" />
