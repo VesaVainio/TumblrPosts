@@ -7,31 +7,31 @@ export class FetchData extends Component {
     super(props);
     this.state = { forecasts: [], loading: true };
 
-    fetch('api/SampleData/WeatherForecasts')
+      fetch(process.env.REACT_APP_API_ROOT + '/api/posts/teasefantasies')
       .then(response => response.json())
       .then(data => {
         this.setState({ forecasts: data, loading: false });
       });
   }
 
-  static renderForecastsTable(forecasts) {
+  static renderPostsTable(posts) {
     return (
       <table className='table'>
         <thead>
           <tr>
+            <th>Blogname</th>
+            <th>Id</th>
+            <th>Type</th>
             <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
           </tr>
         </thead>
         <tbody>
-          {forecasts.map(forecast =>
-            <tr key={forecast.dateFormatted}>
-              <td>{forecast.dateFormatted}</td>
-              <td>{forecast.temperatureC}</td>
-              <td>{forecast.temperatureF}</td>
-              <td>{forecast.summary}</td>
+          {posts.map(post =>
+            <tr key={post.Id}>
+              <td>{post.Blogname}</td>
+              <td>{post.Id}</td>
+              <td>{post.Type}</td>
+              <td>{post.Date}</td>
             </tr>
           )}
         </tbody>
@@ -42,7 +42,7 @@ export class FetchData extends Component {
   render() {
     let contents = this.state.loading
       ? <p><em>Loading...</em></p>
-      : FetchData.renderForecastsTable(this.state.forecasts);
+        : FetchData.renderPostsTable(this.state.forecasts);
 
     return (
       <div>
