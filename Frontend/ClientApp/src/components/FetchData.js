@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import StackGrid from "react-stack-grid";
+import Utils from "../Utils";
 
 export class FetchData extends Component {
   displayName = FetchData.name
@@ -7,7 +9,7 @@ export class FetchData extends Component {
     super(props);
     this.state = { forecasts: [], loading: true };
 
-      fetch(process.env.REACT_APP_API_ROOT + '/api/posts/teasefantasies')
+      fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + process.env.REACT_APP_DEFAULT_BLOG)
       .then(response => response.json())
       .then(data => {
         this.setState({ forecasts: data, loading: false });
@@ -16,26 +18,18 @@ export class FetchData extends Component {
 
   static renderPostsTable(posts) {
     return (
-      <table className='table'>
-        <thead>
-          <tr>
-            <th>Blogname</th>
-            <th>Id</th>
-            <th>Type</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map(post =>
-            <tr key={post.Id}>
-              <td>{post.Blogname}</td>
-              <td>{post.Id}</td>
-              <td>{post.Type}</td>
-              <td>{post.Date}</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <StackGrid columnWidth={250}>
+        {posts.map(post =>
+          <div key={post.Id}>
+            {!post.Photos && 
+              <span>No photo</span>
+            }
+            {post.Photos &&
+              <img src={Utils.GetPhotoUrl(post)} width="250"/>
+            }
+          </div>
+        )}
+      </StackGrid>
     );
   }
 
