@@ -7,6 +7,7 @@ using QueueInterface.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HtmlAgilityPack;
 using QueueInterface.Messages.Dto;
 using TableInterface;
@@ -20,7 +21,7 @@ namespace Functions
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
         [FunctionName("ProcessBlogToIndex")]
-        public static void Run([QueueTrigger(Constants.BlogToIndexQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
+        public static async Task Run([QueueTrigger(Constants.BlogToIndexQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
             Startup.Init();
 
@@ -48,19 +49,21 @@ namespace Functions
 
             log.Info("Loaded " + photoIndexEntities.Count + " photo index entities");
 
+            BlogEntity blogEntity = await blogInfoTableAdapter.GetBlog(blogToIndex.Blogname);
+
             Dictionary<string, List<Photo>> photosByBlogById = CreatePhotosByBlogById(photoIndexEntities);
-            PhotosByBlog photosByBlog = CreatePhotosByBlog(photoIndexEntities, blogToIndex.Blogname);
+            BlogStats blogStats = CreateBlogStatsFromPhotos(photoIndexEntities, blogToIndex.Blogname);
+            blogStats.UpdateFromBlogEntity(blogEntity);
 
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
-            PostsByBlog postsByBlog = CreatePostsByBlog(postEntities, blogToIndex.Blogname);
+            UpdateBlogStatsFromPosts(blogStats, postEntities);
             UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, mediaToDownloadQueueAdapter, log);
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
             InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
 
-            blogInfoTableAdapter.InsertPhotosByBlog(photosByBlog);
-            blogInfoTableAdapter.InsertPostsByBlog(postsByBlog);
+            blogInfoTableAdapter.InsertBlobStats(blogStats);
         }
 
         private static void UpdatePostEntities(string blogname, List<PostEntity> postEntities,
@@ -177,60 +180,56 @@ namespace Functions
             log.Info("Inserted " + index + " reverse posts for " + blogname);
         }
 
-        private static PostsByBlog CreatePostsByBlog(List<PostEntity> postEntities, string blogname)
+        private static void UpdateBlogStatsFromPosts(BlogStats blogStats, List<PostEntity> postEntities)
         {
-            PostsByBlog postsByBlog = new PostsByBlog(blogname);
-
             foreach (PostEntity post in postEntities)
             {
                 switch (post.Type)
                 {
                     case "Text":
                         {
-                            postsByBlog.Text++;
+                            blogStats.Text++;
                             break;
                         }
                     case "Quote":
                         {
-                            postsByBlog.Quote++;
+                            blogStats.Quote++;
                             break;
                         }
                     case "Link":
                         {
-                            postsByBlog.Link++;
+                            blogStats.Link++;
                             break;
                         }
                     case "Answer":
                         {
-                            postsByBlog.Answer++;
+                            blogStats.Answer++;
                             break;
                         }
                     case "Video":
                         {
-                            postsByBlog.Video++;
+                            blogStats.Video++;
                             break;
                         }
                     case "Audio":
                         {
-                            postsByBlog.Audio++;
+                            blogStats.Audio++;
                             break;
                         }
                     case "Photo":
                         {
-                            postsByBlog.Photo++;
+                            blogStats.Photo++;
                             break;
                         }
                     case "Chat":
                         {
-                            postsByBlog.Chat++;
+                            blogStats.Chat++;
                             break;
                         }
                 }
 
-                postsByBlog.TotalPosts++;
+                blogStats.TotalPosts++;
             }
-
-            return postsByBlog;
         }
 
         private static Dictionary<string, List<Photo>> CreatePhotosByBlogById(List<PhotoIndexEntity> photoIndexEntities)
@@ -273,9 +272,9 @@ namespace Functions
             return currentDictionary;
         }
 
-        private static PhotosByBlog CreatePhotosByBlog(List<PhotoIndexEntity> photoIndexEntities, string blogname)
+        private static BlogStats CreateBlogStatsFromPhotos(List<PhotoIndexEntity> photoIndexEntities, string blogname)
         {
-            PhotosByBlog currentBlog = new PhotosByBlog(blogname);
+            BlogStats currentBlog = new BlogStats(blogname);
 
             foreach (PhotoIndexEntity entity in photoIndexEntities)
             {

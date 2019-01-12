@@ -25,15 +25,9 @@ namespace TableInterface
             blogsTable.Execute(insertOrMergeOperation);
         }
 
-        public void InsertPhotosByBlog(PhotosByBlog photosByBlog)
+        public void InsertBlobStats(BlogStats blogStats)
         {
-            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(photosByBlog);
-            blogsTable.Execute(insertOrMergeOperation);
-        }
-
-        public void InsertPostsByBlog(PostsByBlog postsByBlog)
-        {
-            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(postsByBlog);
+            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(blogStats);
             blogsTable.Execute(insertOrMergeOperation);
         }
 

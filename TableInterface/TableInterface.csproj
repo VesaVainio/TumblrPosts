@@ -195,10 +195,8 @@
     <Compile Include="BlogInfoTableAdapter.cs" />
     <Compile Include="Entities\BlogEntity.cs" />
     <Compile Include="Entities\Partial\PostNotFoundEntity.cs" />
-    <Compile Include="Entities\PostsByBlog.cs" />
+    <Compile Include="Entities\BlogStats.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />
-    <Compile Include="Entities\PhotosByBlog.cs" />
-    <Compile Include="Entities\PostsByBlogEntity.cs" />
     <Compile Include="Entities\ReversePostEntity.cs" />
     <Compile Include="Entities\Partial\VideoDownloadCompleteEntity.cs" />
     <Compile Include="Entities\Partial\PhotoDownloadCompleteEntity.cs" />
