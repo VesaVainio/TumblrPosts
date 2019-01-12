@@ -18,7 +18,7 @@ export class FetchData extends Component {
 
   static renderPostsTable(posts) {
     return (
-      <StackGrid columnWidth={250}>
+      <StackGrid columnWidth={250} monitorImagesLoaded={true}>
         {posts.map(post =>
           <div key={post.Id}>
             {!post.Photos && 
