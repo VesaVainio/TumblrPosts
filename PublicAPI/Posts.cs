@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
 using TableInterface;
 using TableInterface.Entities;
 
@@ -13,8 +15,10 @@ namespace PublicAPI
 {
     public static class Posts
     {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+
         [FunctionName("Posts")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "posts/{blogname}")]HttpRequestMessage req, 
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "posts/{blogname}")]HttpRequestMessage req,
             string blogname, TraceWriter log)
         {
             ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();
@@ -29,7 +33,11 @@ namespace PublicAPI
                 .FirstOrDefault(q => string.Compare(q.Key, "name", true) == 0)
                 .Value;
 
-            return req.CreateResponse(HttpStatusCode.OK, posts, "application/json");
+            string postsJson = JsonConvert.SerializeObject(posts, JsonSerializerSettings);
+
+            HttpResponseMessage response = req.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(postsJson, Encoding.UTF8, "application/json");
+            return response;
         }
     }
 }
