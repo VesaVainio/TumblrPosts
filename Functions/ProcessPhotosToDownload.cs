@@ -19,7 +19,7 @@ namespace Functions
 {
     public static class ProcessPhotosToDownload
     {
-        private static int[] downloadSizes = { 1280, 640, 250 };
+        private static readonly int[] DownloadSizes = { 1280, 640, 250 };
 
         [FunctionName("ProcessPhotosToDownload")]
         public static async Task Run([QueueTrigger(Constants.PhotosToDownloadQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
@@ -61,7 +61,7 @@ namespace Functions
                         {
                             PhotoUrlHelper urlHelper = PhotoUrlHelper.ParseTumblr(altSize.Url);
 
-                            if (isOriginal || (urlHelper != null && downloadSizes.Contains(urlHelper.Size)))
+                            if (isOriginal || (urlHelper != null && DownloadSizes.Contains(urlHelper.Size)))
                             {
                                 if (sitePhoto == null)
                                 {
@@ -69,7 +69,7 @@ namespace Functions
                                     {
                                         Name = urlHelper.Name,
                                         Extension = urlHelper.Extension,
-                                        Sizes = new Model.Site.PhotoSize[0]
+                                        Sizes = new PhotoSize[0]
                                     };
                                 }
 
@@ -98,7 +98,7 @@ namespace Functions
                             }
                         }
 
-                        if (sitePhoto.Sizes.Length > 0)
+                        if (sitePhoto?.Sizes.Length > 0)
                         {
                             sitePhotos.Add(sitePhoto);
                         }
