@@ -10,15 +10,12 @@ namespace TableInterface
 {
     public class ReversePostsTableAdapter
     {
-        private static List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
-        private static List<string> FrontendColumns = new List<string> { "PartitionKey", "RowKey", "Date", "PhotoBlobUrls", "Type" };
-
         private CloudTable reversePostsTable;
         private TraceWriter log;
 
-        public void Init(TraceWriter log)
+        public void Init(TraceWriter logWriter)
         {
-            this.log = log;
+            log = logWriter;
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
