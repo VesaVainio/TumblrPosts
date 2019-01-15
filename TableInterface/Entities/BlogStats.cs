@@ -1,9 +1,12 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
+using Model.Site;
 
 namespace TableInterface.Entities
 {
     public class BlogStats : TableEntity
     {
+        public const string BlogStatsPartitionKey = "stats";
+        
         // from BlobEntity
         public string Title { get; set; }
         public long Updated { get; set; }
@@ -33,9 +36,11 @@ namespace TableInterface.Entities
         public int PhotosWithWidthCount { get; set; }
         public double AverageWidth { get; set; }
 
+        public BlogStats() { }
+
         public BlogStats(string blogname)
         {
-            PartitionKey = "stats";
+            PartitionKey = BlogStatsPartitionKey;
             RowKey = blogname;
         }
 
@@ -50,6 +55,35 @@ namespace TableInterface.Entities
             Updated = entity.Updated;
             Description = entity.Description;
             Posts = entity.Posts;
+        }
+
+        public BlogInfo GetSiteBlog()
+        {
+            return new BlogInfo
+            {
+                Name = RowKey,
+
+                Title = Title,
+                Updated = Updated,
+                Description = Description,
+                Posts = Posts,
+
+                Text = Text,
+                Quote = Quote,
+                Link = Link,
+                Answer = Answer,
+                Video = Video,
+                Audio = Audio,
+                Photo = Photo,
+                Chat = Chat,
+                TotalPosts = TotalPosts,
+
+                Gifs = Gifs,
+                Jpgs = Jpgs,
+                Pngs = Pngs,
+                PhotosCount = PhotosCount,
+                AverageWidth = AverageWidth,
+            };  
         }
     }
 }

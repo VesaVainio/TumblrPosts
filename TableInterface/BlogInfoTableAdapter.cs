@@ -1,6 +1,8 @@
-﻿using Microsoft.Azure.CosmosDB.Table;
+﻿using System.Collections.Generic;
+using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
 using System.Configuration;
+using System.Linq;
 using System.Threading.Tasks;
 using TableInterface.Entities;
 
@@ -42,6 +44,14 @@ namespace TableInterface
             }
 
             return null;
+        }
+
+        public List<BlogStats> GetBlogStats()
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, BlogStats.BlogStatsPartitionKey);
+            TableQuery<BlogStats> query = new TableQuery<BlogStats>().Where(pkFilter);
+            IEnumerable<BlogStats> result = blogsTable.ExecuteQuery(query);
+            return result.ToList();
         }
     }
 }

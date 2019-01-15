@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="Site\BlogInfo.cs" />
     <Compile Include="Site\Photo.cs" />
     <Compile Include="Site\PhotoSize.cs" />
     <Compile Include="Site\Post.cs" />

@@ -9,11 +9,11 @@ export class FetchData extends Component {
     super(props);
     this.state = { forecasts: [], loading: true };
 
-      fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + process.env.REACT_APP_DEFAULT_BLOG)
-      .then(response => response.json())
-      .then(data => {
-        this.setState({ forecasts: data, loading: false });
-      });
+    fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
+    .then(response => response.json())
+    .then(data => {
+      this.setState({ forecasts: data, loading: false });
+    });
   }
 
   static renderPostsTable(posts) {
