@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import StackGrid from "react-stack-grid";
 import Utils from "../Utils";
 
-export class FetchData extends Component {
-  displayName = FetchData.name
+export class Posts extends Component {
+  displayName = Posts.name
 
   constructor(props) {
     super(props);
@@ -21,10 +21,10 @@ export class FetchData extends Component {
       <StackGrid columnWidth={250} monitorImagesLoaded={true}>
         {posts.map(post =>
           <div key={post.Id}>
-            {!post.Photos && 
+            {!post.Photos || post.Photos.length === 0 && 
               <span>No photo</span>
             }
-            {post.Photos &&
+            {post.Photos && post.Photos.length !== 0 &&
               <img src={Utils.GetPhotoUrl(post)} width="250"/>
             }
           </div>
@@ -36,12 +36,11 @@ export class FetchData extends Component {
   render() {
     let contents = this.state.loading
       ? <p><em>Loading...</em></p>
-        : FetchData.renderPostsTable(this.state.forecasts);
+        : Posts.renderPostsTable(this.state.forecasts);
 
     return (
       <div>
-        <h1>Weather forecast</h1>
-        <p>This component demonstrates fetching data from the server.</p>
+        <h1>{this.props.match.params.blogname}</h1>
         {contents}
       </div>
     );

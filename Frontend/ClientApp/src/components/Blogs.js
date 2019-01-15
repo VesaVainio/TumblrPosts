@@ -21,7 +21,7 @@ class Blogs extends Component {
   handleClick(e) {
       var blogname = e.target.parentElement.getAttribute('data-blog');
       console.log(blogname);
-      this.props.history.push('/fetchdata/' + blogname);
+      this.props.history.push('/posts/' + blogname);
   }
 
   renderBlogsTable(blogs) {
@@ -31,8 +31,8 @@ class Blogs extends Component {
           <tr key={blog.Name} data-blog={blog.Name} onClick={this.handleClick}>
           <td>{blog.Name}</td>
           <td>{blog.Title}</td>
-          <td>{blog.Photos}</td>
-          <td>{blog.Videos}</td>
+          <td>{blog.Photo}</td>
+          <td>{blog.Video}</td>
           <td>{blog.TotalPosts}</td>
           </tr>
         );}.bind(this));
@@ -48,7 +48,7 @@ class Blogs extends Component {
             <th>Total</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className='blog-table'>
           {rows}
         </tbody>
       </table>
