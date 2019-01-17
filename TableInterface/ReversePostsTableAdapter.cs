@@ -68,5 +68,18 @@ namespace TableInterface
             IEnumerable<ReversePostEntity> result = reversePostsTable.ExecuteQuery(query);
             return result.Skip(offset).Take(maxCount).ToList();
         }
+
+        public ReversePostEntity GetPost(string blogName, string id)
+        {
+            TableOperation retrieveOperation = TableOperation.Retrieve<ReversePostEntity>(blogName, id);
+            TableResult result = reversePostsTable.Execute(retrieveOperation);
+            if (result.HttpStatusCode == 200)
+            {
+                ReversePostEntity entity = (ReversePostEntity)result.Result;
+                return entity;
+            }
+
+            return null;
+        }
     }
 }

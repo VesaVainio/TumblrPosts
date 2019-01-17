@@ -26,7 +26,7 @@ namespace PublicAPI
 
             List<ReversePostEntity> entities = reversePostsTableAdapter.GetMostRecent(blogname);
 
-            List<Post> posts = entities.Select(x => x.GetSitePost()).ToList();
+            List<Model.Site.Post> posts = entities.Select(x => x.GetSitePost()).ToList();
 
             // parse query parameter
             string name = req.GetQueryNameValuePairs()
