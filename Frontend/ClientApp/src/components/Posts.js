@@ -28,14 +28,14 @@ export class Posts extends Component {
     return (
       <StackGrid columnWidth={250} monitorImagesLoaded={true}>
         {posts.map(post =>
-          <div data-grid={{static: true}}>
-            {!post.Photos || post.Photos.length === 0 && 
+          <div data-grid={{ static: true }}>
+            {!post.Photos || post.Photos.length === 0 &&
               <span>No photo</span>
             }
             {post.Photos && post.Photos.length !== 0 &&
-              <div onMouseDown={ e => e.stopPropagation() }>
-                <img src={Utils.GetSmallPhotoUrl(post)} width="250" key={post.Id} data-id={post.Id} onClick={this.handleClick}/>
-              </div>
+              <div className="photo-post"><a href={"/post/" + post.Blogname + "/" + post.Id}>
+                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
+              </a></div>
             }
           </div>
         )}
