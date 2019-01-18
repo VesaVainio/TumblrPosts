@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Masonry from 'react-masonry-infinite';
 import Utils from "../Utils";
+import './Posts.css';
 
 export class Posts extends Component {
   displayName = Posts.name
@@ -9,32 +10,29 @@ export class Posts extends Component {
     super(props);
     this.state = { posts: [], loading: true, hasMore: false };
 
-    this.expectedLoads = 0
-
-    this.handleClick = this.handleClick.bind(this);
     this.loadMore = this.loadMore.bind(this);
     this.imageReady = this.imageReady.bind(this);
 
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
-    .then(response => response.json())
-    .then(data => {
-      this.setState({ posts: data, loading: false });
-    });
+      .then(response => response.json())
+      .then(data => {
+        this.setState({ posts: data, loading: false, hasMore: data.length === 50 });
+      });
   }
   
-  loadMore() {}
-
-  handleClick(e) {
-    var blogname = this.props.match.params.blogname;
-    var id = e.target.getAttribute('data-id');
-    this.props.history.push('/post/' + blogname + "/" + id);
+  loadMore() {
+    const [lastPost] = this.state.posts.slice(-1);
+    fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + this.props.match.params.blogname + "?after=" + lastPost.Id)
+      .then(response => response.json())
+      .then(data => {
+        this.setState(state => ({
+          posts: state.posts.concat(data),
+          hasMore: data.length === 50 
+        }));
+      });
   }
 
   imageReady() {
-    // expectedLoads--;
-    // if (this.expectedLoads == 0) {
-    //   this.masonryGrid.forcePack();
-    // }
     this.masonryGrid.forcePack();
   }
 
@@ -55,9 +53,9 @@ export class Posts extends Component {
               <span>No photo</span>
             }
             {(post.Photos && post.Photos.length !== 0) &&
-              <div>
-                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onClick={this.handleClick} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
-              </div>
+              <div className="photo-post"><a href={ "/post/" + post.Blogname + "/" + post.Id}> 
+                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
+              </a></div>
             }
           </div>
         )}
