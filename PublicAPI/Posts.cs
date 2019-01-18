@@ -1,13 +1,13 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Model.Site;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using Newtonsoft.Json;
 using TableInterface;
 using TableInterface.Entities;
 
@@ -24,14 +24,19 @@ namespace PublicAPI
             ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();
             reversePostsTableAdapter.Init(log);
 
-            List<ReversePostEntity> entities = reversePostsTableAdapter.GetMostRecent(blogname);
+            string afterParam = req.GetQueryNameValuePairs().FirstOrDefault(q => q.Key.Equals("after", StringComparison.OrdinalIgnoreCase)).Value;
+
+            List<ReversePostEntity> entities;
+            if (string.IsNullOrEmpty(afterParam))
+            {
+                entities = reversePostsTableAdapter.GetMostRecent(blogname);
+            }
+            else
+            {
+                entities = reversePostsTableAdapter.GetAfter(blogname, afterParam);
+            }
 
             List<Model.Site.Post> posts = entities.Select(x => x.GetSitePost()).ToList();
-
-            // parse query parameter
-            string name = req.GetQueryNameValuePairs()
-                .FirstOrDefault(q => string.Compare(q.Key, "name", true) == 0)
-                .Value;
 
             string postsJson = JsonConvert.SerializeObject(posts, JsonSerializerSettings);
 

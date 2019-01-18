@@ -69,6 +69,17 @@ namespace TableInterface
             return result.Skip(offset).Take(maxCount).ToList();
         }
 
+        public List<ReversePostEntity> GetAfter(string blogName, string afterId, int maxCount = 50)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
+            string rkFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, afterId);
+            string combinedFilter = TableQuery.CombineFilters(pkFilter, TableOperators.And, rkFilter);
+
+            TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>().Where(combinedFilter);
+            IEnumerable<ReversePostEntity> result = reversePostsTable.ExecuteQuery(query);
+            return result.Take(maxCount).ToList();
+        }
+
         public ReversePostEntity GetPost(string blogName, string id)
         {
             TableOperation retrieveOperation = TableOperation.Retrieve<ReversePostEntity>(blogName, id);
