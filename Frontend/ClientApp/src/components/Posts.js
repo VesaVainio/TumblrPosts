@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Masonry from 'react-masonry-infinite';
+import { Grid, GridItem } from 'react-masonry-infinite-scroll';
 import Utils from "../Utils";
 import './Posts.css';
 
@@ -16,7 +16,7 @@ export class Posts extends Component {
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
       .then(response => response.json())
       .then(data => {
-        this.setState({ posts: data, loading: false, hasMore: data.length === 50 });
+        this.setState({ posts: data, loading: false, itemsLeft: data.length === 50 ? 1 : 0 });
       });
   }
   
@@ -27,39 +27,36 @@ export class Posts extends Component {
       .then(data => {
         this.setState(state => ({
           posts: state.posts.concat(data),
-          hasMore: data.length === 50 
+          itemsLeft: data.length === 50 ? 1 : 0
         }));
       });
   }
 
   imageReady() {
-    this.masonryGrid.forcePack();
+    this.masonryGrid.imageLoaded();
+  }
+
+  notifyReadyState() {
+    
   }
 
   renderPostsTable(posts) {
     return (
-      <Masonry className="masonry" hasMore={this.state.hasMore} loadMore={this.loadMore} ref={(child) => { this.masonryGrid = child; }}
-        sizes={[
-          { columns: 1, gutter: 10 },
-          { mq: '820px', columns: 2, gutter: 10 },
-          { mq: '1145px', columns: 3, gutter: 10 },
-          { mq: '1470px', columns: 4, gutter: 10 },
-          { mq: '1795px', columns: 5, gutter: 10 },
-        ]}
-      >
+      <Grid columnWidth={260} itemsLeft={this.state.itemsLeft} loadMore={this.loadMore} ref={(child) => { this.masonryGrid = child; }} notifyReadyState={this.notifyReadyState} 
+        scrollThreshold={0}>
         {posts.map(post =>
-          <div key={post.Id}>
+          <GridItem key={post.Id}>
             {(!post.Photos || post.Photos.length === 0) && 
               <span>No photo</span>
             }
             {(post.Photos && post.Photos.length !== 0) &&
               <div className="photo-post"><a href={ "/post/" + post.Blogname + "/" + post.Id}> 
-                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
+                <img src={Utils.GetBigPhotoUrl(post)} width="250" onLoad={this.imageReady} onError={this.imageReady} alt=""/>
               </a></div>
             }
-          </div>
+          </GridItem>
         )}
-      </Masonry>
+      </Grid>
     );
   }
 
