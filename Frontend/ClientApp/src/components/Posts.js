@@ -1,62 +1,91 @@
 import React, { Component } from 'react';
-import { Grid, GridItem } from 'react-masonry-infinite-scroll';
+import { GridLayout } from "@egjs/react-infinitegrid";
 import Utils from "../Utils";
 import './Posts.css';
+
+const Item = ({ post }) => (
+  <div>
+    {(!post.Photos || post.Photos.length === 0) && 
+      <span>No photo</span>
+    }
+    {(post.Photos && post.Photos.length !== 0) &&
+      <div className="photo-post"><a href={ "/post/" + post.Blogname + "/" + post.Id}> 
+        <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
+      </a></div>
+    }
+  </div>
+);
 
 export class Posts extends Component {
   displayName = Posts.name
 
   constructor(props) {
     super(props);
-    this.state = { posts: [], loading: true, hasMore: false };
+    this.state = { posts: [], loading: true, hasMore: true };
 
-    this.loadMore = this.loadMore.bind(this);
+    this.onAppend = this.onAppend.bind(this);
+    this.onLayoutComplete = this.onLayoutComplete.bind(this);
     this.imageReady = this.imageReady.bind(this);
+
+    this.layoutInProgress = false;
 
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
       .then(response => response.json())
       .then(data => {
-        this.setState({ posts: data, loading: false, itemsLeft: data.length === 50 ? 1 : 0 });
+        this.setState({ posts: data, loading: false, hasMore: data.length === 50 });
       });
   }
   
-  loadMore() {
+  onAppend = ({ groupKey, startLoading }) => {
+    if (!this.state.hasMore) {
+      return;
+    }
+
+    startLoading();
+
     const [lastPost] = this.state.posts.slice(-1);
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + this.props.match.params.blogname + "?after=" + lastPost.Id)
       .then(response => response.json())
       .then(data => {
+        data.forEach(post => {
+          post.GroupKey = groupKey;
+        });
         this.setState(state => ({
           posts: state.posts.concat(data),
-          itemsLeft: data.length === 50 ? 1 : 0
+          hasMore: data.length === 50 
         }));
       });
-  }
+  };
+
+  onLayoutComplete = ({ isLayout, endLoading }) => {
+    !isLayout && endLoading();
+
+    if (!this.layoutInProgress) {
+      this.layoutInProgress = true;
+      this.masonryGrid.layout();
+      this.layoutInProgress = false;
+    }
+  };
 
   imageReady() {
-    this.masonryGrid.imageLoaded();
-  }
-
-  notifyReadyState() {
-    
+    this.masonryGrid.forcePack();
   }
 
   renderPostsTable(posts) {
     return (
-      <Grid columnWidth={260} itemsLeft={this.state.itemsLeft} loadMore={this.loadMore} ref={(child) => { this.masonryGrid = child; }} notifyReadyState={this.notifyReadyState} 
-        scrollThreshold={0}>
+      <GridLayout
+        margin={10}
+        align="center"
+        onAppend={this.onAppend}
+        onLayoutComplete={this.onLayoutComplete}
+        transitionDuration={0.2}
+        isConstantSize={true}
+        ref={(child) => { this.masonryGrid = child; }}
+      >
         {posts.map(post =>
-          <GridItem key={post.Id}>
-            {(!post.Photos || post.Photos.length === 0) && 
-              <span>No photo</span>
-            }
-            {(post.Photos && post.Photos.length !== 0) &&
-              <div className="photo-post"><a href={ "/post/" + post.Blogname + "/" + post.Id}> 
-                <img src={Utils.GetBigPhotoUrl(post)} width="250" onLoad={this.imageReady} onError={this.imageReady} alt=""/>
-              </a></div>
-            }
-          </GridItem>
+          <Item groupKey={post.GroupKey} key={post.Id} post={post}/>
         )}
-      </Grid>
+      </GridLayout>
     );
   }
 
