@@ -61,7 +61,7 @@ namespace TableInterface
             }
         }
 
-        public List<ReversePostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
+        public List<ReversePostEntity> GetMostRecent(string blogName, int maxCount = 20, int offset = 0)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
             TableQuery<ReversePostEntity> query = new TableQuery<ReversePostEntity>().Where(pkFilter);
@@ -69,7 +69,7 @@ namespace TableInterface
             return result.Skip(offset).Take(maxCount).ToList();
         }
 
-        public List<ReversePostEntity> GetAfter(string blogName, string afterId, int maxCount = 50)
+        public List<ReversePostEntity> GetAfter(string blogName, string afterId, int maxCount = 20)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
             string rkFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, afterId);

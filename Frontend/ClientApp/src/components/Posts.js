@@ -16,7 +16,7 @@ export class Posts extends Component {
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
       .then(response => response.json())
       .then(data => {
-        this.setState({ posts: data, loading: false, hasMore: data.length === 50 });
+        this.setState({ posts: data, loading: false, hasMore: data.length === 20 });
       });
   }
   
@@ -27,7 +27,7 @@ export class Posts extends Component {
       .then(data => {
         this.setState(state => ({
           posts: state.posts.concat(data),
-          hasMore: data.length === 50 
+          hasMore: data.length === 20 
         }));
       });
   }
