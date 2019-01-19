@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import StackGrid from "react-stack-grid";
+import Waypoint from 'react-waypoint';
 import Utils from "../Utils";
 
 export class Posts extends Component {
@@ -9,32 +10,42 @@ export class Posts extends Component {
     super(props);
     this.state = { posts: [], loading: true };
 
-    this.handleClick = this.handleClick.bind(this);
+    this.loadMore = this.loadMore.bind(this);
 
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
     .then(response => response.json())
     .then(data => {
-      this.setState({ posts: data, loading: false });
+      this.setState({ posts: data, loading: false, hasMore: data.length === 50 });
     });
   }
-  
-  handleClick(e) {
-    var blogname = this.props.match.params.blogname;
-    var id = e.target.parentElement.getAttribute('data-id');
-    this.props.history.push('/posts/' + blogname + "/" + id);
+
+  loadMore() {
+    if (!this.state.hasMore) {
+      return;
+    }
+
+    const [lastPost] = this.state.posts.slice(-1);
+    fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + this.props.match.params.blogname + "?after=" + lastPost.Id)
+      .then(response => response.json())
+      .then(data => {
+        this.setState(state => ({
+          posts: state.posts.concat(data),
+          hasMore: data.length === 50 
+        }));
+      });
   }
 
   static renderPostsTable(posts) {
     return (
       <StackGrid columnWidth={250} monitorImagesLoaded={true}>
         {posts.map(post =>
-          <div data-grid={{ static: true }}>
-            {!post.Photos || post.Photos.length === 0 &&
+          <div key={post.Id}>
+            {(!post.Photos || post.Photos.length === 0) &&
               <span>No photo</span>
             }
-            {post.Photos && post.Photos.length !== 0 &&
+            {(post.Photos && post.Photos.length !== 0) &&
               <div className="photo-post"><a href={"/post/" + post.Blogname + "/" + post.Id}>
-                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
+                <img src={Utils.GetBigPhotoUrl(post)} width="250" alt="" />
               </a></div>
             }
           </div>
@@ -52,6 +63,11 @@ export class Posts extends Component {
       <div>
         <h1>{this.props.match.params.blogname}</h1>
         {contents}
+        <Waypoint onEnter={this.loadMore}>
+          <div>
+            Some content here
+          </div>
+        </Waypoint>
       </div>
     );
   }
