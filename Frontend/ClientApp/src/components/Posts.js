@@ -9,6 +9,7 @@ export class Posts extends Component {
   constructor(props) {
     super(props);
     this.state = { posts: [], loading: true, hasMore: false };
+    this.isFetching = false;
 
     this.loadMore = this.loadMore.bind(this);
     this.imageReady = this.imageReady.bind(this);
@@ -21,10 +22,16 @@ export class Posts extends Component {
   }
   
   loadMore() {
+    if (this.isFetching) {
+      return;
+    }
+
+    this.isFetching = true;
     const [lastPost] = this.state.posts.slice(-1);
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + this.props.match.params.blogname + "?after=" + lastPost.Id)
       .then(response => response.json())
       .then(data => {
+        this.isFetching = false;
         this.setState(state => ({
           posts: state.posts.concat(data),
           hasMore: data.length === 20 
