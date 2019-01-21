@@ -61,7 +61,29 @@ namespace Functions
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
-            blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
+            foreach (PostEntity postEntity in postEntities)
+            {
+                if (!string.IsNullOrEmpty(postEntity.PhotoBlobUrls))
+                {
+                    try
+                    {
+                        Photo[] photos = JsonConvert.DeserializeObject<Photo[]>(postEntity.PhotoBlobUrls);
+
+                        if (photos.Any(x => !x.Name.Contains("_")))
+                        {
+                            SendToReprocessing(postEntity.PartitionKey, mediaToDownloadQueueAdapter, log, postEntity);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Error: " + e.Message);
+                        throw;
+                    }
+                }
+            }
+
+            blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, 
+                postToGetQueueAdapter, mediaToDownloadQueueAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
         }
@@ -93,29 +115,7 @@ namespace Functions
                     }
                     else
                     {
-                        if (!string.IsNullOrEmpty(postEntity.PhotosJson))
-                        {
-                            SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(postEntity.PhotosJson));
-                        }
-                        else if (!string.IsNullOrEmpty(postEntity.Body))
-                        {
-                            HtmlDocument htmlDoc = new HtmlDocument();
-                            string unescapedBody = JsonConvert.DeserializeObject<string>(postEntity.Body);
-                            htmlDoc.LoadHtml(unescapedBody);
-                            List<TumblrPics.Model.Tumblr.Photo> photosFromHtml = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
-                            if (photosFromHtml.Count > 0)
-                            {
-                                SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, photosFromHtml.ToArray());
-                            }
-                            else
-                            {
-                                log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson and Body with photos");
-                            }
-                        }
-                        else
-                        {
-                            log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson");
-                        }
+                        SendToReprocessing(blogname, mediaToDownloadQueueAdapter, log, postEntity);
                     }
                 }                
             }
@@ -124,6 +124,33 @@ namespace Functions
             {
                 postsTableAdapter.InsertBatch(toUpdate);
                 log.Info($"Updated {index} posts for {blogname}");
+            }
+        }
+
+        private static void SendToReprocessing(string blogname, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log, PostEntity postEntity)
+        {
+            if (!string.IsNullOrEmpty(postEntity.PhotosJson))
+            {
+                SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(postEntity.PhotosJson));
+            }
+            else if (!string.IsNullOrEmpty(postEntity.Body))
+            {
+                HtmlDocument htmlDoc = new HtmlDocument();
+                string unescapedBody = JsonConvert.DeserializeObject<string>(postEntity.Body);
+                htmlDoc.LoadHtml(unescapedBody);
+                List<TumblrPics.Model.Tumblr.Photo> photosFromHtml = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
+                if (photosFromHtml.Count > 0)
+                {
+                    SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, photosFromHtml.ToArray());
+                }
+                else
+                {
+                    log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson and Body with photos");
+                }
+            }
+            else
+            {
+                log.Warning($"Post {blogname}/{postEntity.RowKey} has obsolete data and is missing PhotosJson");
             }
         }
 
@@ -145,7 +172,7 @@ namespace Functions
         }
 
         private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
-            ReversePostsTableAdapter reversePostsTableAdapter, PostToGetQueueAdapter postToGetQueueAdapter, TraceWriter log)
+            ReversePostsTableAdapter reversePostsTableAdapter, PostToGetQueueAdapter postToGetQueueAdapter, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
         {
             int index = 0;
 
@@ -164,9 +191,8 @@ namespace Functions
                 if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
-                } else if (!string.IsNullOrEmpty(entity.VideoBlobUrls))
+                } else if (!string.IsNullOrEmpty(entity.VideoBlobUrls) && entity.VideoBlobUrls.StartsWith("[{"))
                 {
-                    // TODO check that VideoBlobUrls is valid JSON, not all of them are!
                     reversePost.Videos = entity.VideoBlobUrls;
                 }
 
@@ -184,7 +210,16 @@ namespace Functions
                 }
                 else
                 {
-                    log.Warning($"Post {entity.PartitionKey}/{entity.RowKey} skipped as it has no Photos, Videos or Body");
+                    if (!string.IsNullOrEmpty(entity.PhotosJson))
+                    {
+                        // this might happen because of posts being initially processed by logic that didn't have PhotoIndex like it is now
+                        SendPhotosToDownload(mediaToDownloadQueueAdapter, entity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(entity.PhotosJson));
+                        log.Warning($"Photos from post {entity.PartitionKey}/{entity.RowKey} sent to be downloaded again");
+                    }
+                    else
+                    {
+                        log.Warning($"Post {entity.PartitionKey}/{entity.RowKey} skipped as it has no Photos, Videos or Body");
+                    }
                 }
             }
 
