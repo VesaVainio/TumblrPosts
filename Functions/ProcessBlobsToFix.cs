@@ -7,21 +7,21 @@ using QueueInterface.Messages;
 
 namespace Functions
 {
-    public static class ProcessBlobsToFix
-    {
-        [FunctionName("ProcessBlobsToFix")]
-        public static void Run([QueueTrigger("blobs-to-fix", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
-        {
-            Startup.Init();
+    //public static class ProcessBlobsToFix
+    //{
+    //    [FunctionName("ProcessBlobsToFix")]
+    //    public static void Run([QueueTrigger("blobs-to-fix", Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
+    //    {
+    //        Startup.Init();
 
-            BlobsToFix blobsToFix = JsonConvert.DeserializeObject<BlobsToFix>(myQueueItem);
+    //        BlobsToFix blobsToFix = JsonConvert.DeserializeObject<BlobsToFix>(myQueueItem);
 
-            BlobAdapter blobAdapter = new BlobAdapter();
-            blobAdapter.Init();
+    //        BlobAdapter blobAdapter = new BlobAdapter();
+    //        blobAdapter.Init();
 
-            blobAdapter.FixBlobs(blobsToFix, log);
+    //        blobAdapter.FixBlobs(blobsToFix, log);
 
-            log.Info($"Fixed {blobsToFix.BlobNames.Count} blobs in {blobsToFix.Container}");
-        }
-    }
+    //        log.Info($"Fixed {blobsToFix.BlobNames.Count} blobs in {blobsToFix.Container}");
+    //    }
+    //}
 }
