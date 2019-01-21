@@ -25,6 +25,8 @@ namespace TableInterface.Entities
 
         public int TotalPosts { get; set; }
 
+        public int DisplayablePosts { get; set; }
+
         // from photos
         public int Gifs { get; set; }
         public int Jpgs { get; set; }

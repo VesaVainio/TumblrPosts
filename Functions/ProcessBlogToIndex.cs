@@ -61,7 +61,7 @@ namespace Functions
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
-            InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
+            blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, postToGetQueueAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
         }
@@ -144,7 +144,7 @@ namespace Functions
             });
         }
 
-        private static void InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
+        private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
             ReversePostsTableAdapter reversePostsTableAdapter, PostToGetQueueAdapter postToGetQueueAdapter, TraceWriter log)
         {
             int index = 0;
@@ -154,6 +154,7 @@ namespace Functions
             foreach (PostEntity entity in postEntities)
             {
                 if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && !entity.PostNotFound && 
+                    (entity.VideoType.Equals("tumblr", StringComparison.OrdinalIgnoreCase) || entity.VideoType.Equals("instagram", StringComparison.OrdinalIgnoreCase)) &&
                     (!entity.VideosDownloadLevel.HasValue || entity.VideosDownloadLevel.Value < Constants.MaxVideosDownloadLevel))
                 {
                     postToGetQueueAdapter.Send(new PostToGet { Blogname = entity.PartitionKey, Id = entity.RowKey });
@@ -163,21 +164,34 @@ namespace Functions
                 if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
+                } else if (!string.IsNullOrEmpty(entity.VideoBlobUrls))
+                {
+                    // TODO check that VideoBlobUrls is valid JSON, not all of them are!
+                    reversePost.Videos = entity.VideoBlobUrls;
                 }
 
-                reverseEntities.Add(reversePost);
-
-                index++;
-                if (index % 100 == 0)
+                if (!string.IsNullOrEmpty(reversePost.Photos) || !string.IsNullOrEmpty(reversePost.Videos) || !string.IsNullOrEmpty(reversePost.Body))
                 {
-                    reversePostsTableAdapter.InsertBatch(reverseEntities);
-                    reverseEntities.Clear();
-                    log.Info("Inserted " + index + " reverse posts for " + entity.PartitionKey);
+                    reverseEntities.Add(reversePost);
+
+                    index++;
+                    if (index % 100 == 0)
+                    {
+                        reversePostsTableAdapter.InsertBatch(reverseEntities);
+                        reverseEntities.Clear();
+                        log.Info("Inserted " + index + " reverse posts for " + entity.PartitionKey);
+                    }
+                }
+                else
+                {
+                    log.Warning($"Post {entity.PartitionKey}/{entity.RowKey} skipped as it has no Photos, Videos or Body");
                 }
             }
 
             reversePostsTableAdapter.InsertBatch(reverseEntities);
             log.Info("Inserted " + index + " reverse posts for " + blogname);
+
+            return index;
         }
 
         private static void UpdateBlogStatsFromPosts(BlogStats blogStats, List<PostEntity> postEntities)
