@@ -18,7 +18,7 @@ namespace PublicAPI
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
         [FunctionName("Blogs")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "blogs")]HttpRequestMessage req, TraceWriter log)
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "blogs")]HttpRequestMessage req, TraceWriter log)
         {
             BlogInfoTableAdapter blogInfoTableAdapter = new BlogInfoTableAdapter();
             blogInfoTableAdapter.Init();
