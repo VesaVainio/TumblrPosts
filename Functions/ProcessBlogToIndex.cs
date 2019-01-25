@@ -18,8 +18,6 @@ namespace Functions
 {
     public static class ProcessBlogToIndex
     {
-        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-
         [FunctionName("ProcessBlogToIndex")]
         public static async Task Run([QueueTrigger(Constants.BlogToIndexQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
         {
@@ -101,7 +99,7 @@ namespace Functions
                 {
                     if (photosByBlogById.TryGetValue(postEntity.RowKey, out List<Photo> photos))
                     {
-                        postEntity.PhotoBlobUrls = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
+                        postEntity.PhotoBlobUrls = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
                         postEntity.PicsDownloadLevel = Constants.MaxPicsDownloadLevel;
                         toUpdate.Add(postEntity);
 
@@ -190,7 +188,7 @@ namespace Functions
                 ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.Body);
                 if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
-                    reversePost.Photos = JsonConvert.SerializeObject(photos, JsonSerializerSettings);
+                    reversePost.Photos = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
                 } else if (!string.IsNullOrEmpty(entity.VideoBlobUrls) && entity.VideoBlobUrls.StartsWith("[{"))
                 {
                     reversePost.Videos = entity.VideoBlobUrls;
