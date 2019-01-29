@@ -124,7 +124,7 @@ namespace Functions
 
         private static string SanitizeSourceBlog(string sourceBlog)
         {
-            return sourceBlog.Replace(' ', '_').Replace('/', '_').Replace("\\", "_").Replace('?', '_').Replace('#', '_');
+            return sourceBlog?.Replace(' ', '_').Replace('/', '_').Replace("\\", "_").Replace('?', '_').Replace('#', '_');
         }
 
         private static void AddSizeToSitePhoto(Photo sitePhoto, string blobUrl, AltSize altSize)
