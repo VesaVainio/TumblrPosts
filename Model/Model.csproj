@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Canonical\FaceAnalysis.cs" />
+    <Compile Include="Canonical\Hair.cs" />
     <Compile Include="Canonical\ImageAnalysis.cs" />
     <Compile Include="Canonical\Label.cs" />
     <Compile Include="Constants.cs" />
@@ -85,7 +87,7 @@
     <Compile Include="Microsoft\Makeup.cs" />
     <Compile Include="Microsoft\Metadata.cs" />
     <Compile Include="Microsoft\Noise.cs" />
-    <Compile Include="Microsoft\Object.cs" />
+    <Compile Include="Microsoft\ImageObject.cs" />
     <Compile Include="Microsoft\Occlusion.cs" />
     <Compile Include="Microsoft\Rectangle.cs" />
     <Compile Include="Microsoft\Tag.cs" />

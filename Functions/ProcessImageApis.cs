@@ -74,9 +74,9 @@ namespace Functions
                 string msAnalyzeResponseString = await responseContent.ReadAsStringAsync();
                 Analysis msAnalysis = JsonConvert.DeserializeObject<Analysis>(msAnalyzeResponseString);
 
-                if (visionApiResponse.Responses.Count == 1 && msFaces.Count > 0)
+                if (visionApiResponse.Responses.Count == 1 && msFaces.Count > 0 && msAnalysis != null)
                 {
-                    ImageAnalysis canonicalImageAnalysis = new ImageAnalysis(visionApiResponse.Responses[0], msFaces);
+                    ImageAnalysis canonicalImageAnalysis = new ImageAnalysis(visionApiResponse.Responses[0], msAnalysis, msFaces);
                 }
             }
         }
