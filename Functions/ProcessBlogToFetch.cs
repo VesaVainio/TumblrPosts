@@ -18,6 +18,8 @@ namespace Functions
         [FunctionName("ProcessBlogToFetch")]
         public static async Task Run([TimerTrigger("0 25 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
+            Startup.Init();
+
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
             BlogToFetchQueueAdapter blogToFetchQueueAdapter = new BlogToFetchQueueAdapter();

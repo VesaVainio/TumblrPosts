@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http;
@@ -6,29 +7,28 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Canonical;
 using Model.Google;
+using Model.Microsoft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using TableInterface;
 
 namespace Functions
 {
     public static class ProcessImageApis
     {
-        private static readonly DefaultContractResolver ContractResolver = new DefaultContractResolver
-        {
-            NamingStrategy = new CamelCaseNamingStrategy()
-        };
-
-        public static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            ContractResolver = ContractResolver
-        };
-
         [FunctionName("ProcessImageApis")]
-        public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "processimage")]HttpRequestMessage req, TraceWriter log)
+        public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "processimage")]
+            HttpRequestMessage req, TraceWriter log)
         {
+            Startup.Init();
+
+            ImageAnalysisTableAdapter imageAnalysisTableAdapter = new ImageAnalysisTableAdapter();
+            imageAnalysisTableAdapter.Init();
+
+            const string imageUrl = "https://tumblrpics.blob.core.windows.net/orig-66/c48440825ac6eab1af6c4de39bbc59d6_ph8zkhbeVA1tf8706_1280.jpg";
+
             using (HttpClient httpClient = new HttpClient())
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
@@ -37,20 +37,47 @@ namespace Functions
 
                 string url = "https://vision.googleapis.com/v1/images:annotate?key=" + apiKey;
 
-                VisionApiRequest request =
-                    VisionApiRequest.CreateFromImageUris(
-                        "https://tumblrpics.blob.core.windows.net/orig-66/c48440825ac6eab1af6c4de39bbc59d6_ph8zkhbeVA1tf8706_1280.jpg");
+                VisionApiRequest request = VisionApiRequest.CreateFromImageUris(imageUrl);
 
-                string requestJson = JsonConvert.SerializeObject(request, JsonSerializerSettings);
+                string requestJson = JsonConvert.SerializeObject(request, JsonUtils.GoogleSerializerSettings);
 
                 StringContent stringContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await httpClient.PostAsync(url, stringContent);
-                //if (response.IsSuccessStatusCode)
-                //{
-                    HttpContent responseContent = response.Content;
-                    string responseContentString = await responseContent.ReadAsStringAsync();
-                //}
+                HttpContent responseContent = response.Content;
+                string googleVisionResponseString = await responseContent.ReadAsStringAsync();
+
+                VisionApiResponse visionApiResponse =
+                    JsonConvert.DeserializeObject<VisionApiResponse>(googleVisionResponseString, JsonUtils.GoogleSerializerSettings);
+
+                string faceApiKey = ConfigurationManager.AppSettings["FaceApiKey"];
+                httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", faceApiKey);
+                stringContent = new StringContent($"{{\"url\":\"{imageUrl}\"}}", Encoding.UTF8, "application/json");
+                response = await httpClient.PostAsync(
+                    "https://northeurope.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=" +
+                    "age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,occlusion,accessories,blur,exposure,noise",
+                    stringContent);
+                responseContent = response.Content;
+
+                string msDetectResponseString = await responseContent.ReadAsStringAsync();
+                List<Face> msFaces = JsonConvert.DeserializeObject<List<Face>>(msDetectResponseString);
+
+                string visionApiKey = ConfigurationManager.AppSettings["ComputerVisionApiKey"];
+                httpClient.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
+                httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", visionApiKey);
+                stringContent = new StringContent($"{{\"url\":\"{imageUrl}\"}}", Encoding.UTF8, "application/json");
+                response = await httpClient.PostAsync(
+                    "https://northeurope.api.cognitive.microsoft.com/vision/v2.0/analyze?visualFeatures=Description,ImageType,Adult,Categories,Tags,Objects,Color&language=en",
+                    stringContent);
+                responseContent = response.Content;
+
+                string msAnalyzeResponseString = await responseContent.ReadAsStringAsync();
+                Analysis msAnalysis = JsonConvert.DeserializeObject<Analysis>(msAnalyzeResponseString);
+
+                if (visionApiResponse.Responses.Count == 1 && msFaces.Count > 0)
+                {
+                    ImageAnalysis canonicalImageAnalysis = new ImageAnalysis(visionApiResponse.Responses[0], msFaces);
+                }
             }
         }
     }
