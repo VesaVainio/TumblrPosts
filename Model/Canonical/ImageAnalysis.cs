@@ -6,6 +6,10 @@ namespace Model.Canonical
 {
     public class ImageAnalysis
     {
+        public string FullText { get; set; }
+        public Dictionary<string, double> Labels { get; set; }
+        public List<Face> Faces { get; set; }
+
         public ImageAnalysis(Response visionResponse, List<Face> faces)
         {
             FullText = visionResponse.FullTextAnnotation.Text;
@@ -16,11 +20,6 @@ namespace Model.Canonical
 
             Faces = faces;
         }
-
-
-        public string FullText { get; set; }
-        public Dictionary<string, double> Labels { get; set; }
-        public List<Face> Faces { get; set; }
 
 
         public void AddLabels(IEnumerable<ILabel> labels)
