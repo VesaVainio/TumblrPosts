@@ -4,10 +4,10 @@ namespace Model.Microsoft
 {
     public class FaceAttributes
     {
-        public double Smile { get; set; }
+        public decimal Smile { get; set; }
         public HeadPose HeadPose { get; set; }
         public string Gender { get; set; }
-        public double Age { get; set; }
+        public decimal Age { get; set; }
         public FacialHair FacialHair { get; set; }
         public string Glasses { get; set; }
         public Emotion Emotion { get; set; }

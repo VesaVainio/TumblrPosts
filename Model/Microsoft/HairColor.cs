@@ -3,6 +3,6 @@
     public class HairColor
     {
         public string Color { get; set; }
-        public double Confidence { get; set; }
+        public decimal Confidence { get; set; }
     }
 }

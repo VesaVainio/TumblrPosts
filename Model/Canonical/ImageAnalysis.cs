@@ -11,7 +11,7 @@ namespace Model.Canonical
 
         public int WordCount { get; set; }
 
-        public Dictionary<string, double> Labels { get; set; }
+        public Dictionary<string, decimal> Labels { get; set; }
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -26,7 +26,7 @@ namespace Model.Canonical
             TokenizedText = StringTokenizer.Tokenize(visionResponse.FullTextAnnotation.Text);
             WordCount = TokenizedText.Length;
 
-            Labels = new Dictionary<string, double>();
+            Labels = new Dictionary<string, decimal>();
             AddLabels(visionResponse.LabelAnnotations);
             AddLabels(visionResponse.WebDetection.WebEntities);
 
@@ -42,7 +42,7 @@ namespace Model.Canonical
         {
             foreach (ILabel labelAnnotation in labels)
             {
-                if (Labels.TryGetValue(labelAnnotation.Description, out double score))
+                if (Labels.TryGetValue(labelAnnotation.Description, out decimal score))
                 {
                     if (score < labelAnnotation.Score) Labels[labelAnnotation.Description] = score; // replace smaller with bigger
                 }

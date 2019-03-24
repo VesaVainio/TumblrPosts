@@ -2,8 +2,8 @@
 {
     public class FacialHair
     {
-        public double Moustache { get; set; }
-        public double Beard { get; set; }
-        public double Sideburns { get; set; }
+        public decimal Moustache { get; set; }
+        public decimal Beard { get; set; }
+        public decimal Sideburns { get; set; }
     }
 }

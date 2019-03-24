@@ -3,6 +3,6 @@
     public class DetectedLanguage
     {
         public string LanguageCode { get; set; }
-        public double Confidence { get; set; }
+        public decimal Confidence { get; set; }
     }
 }

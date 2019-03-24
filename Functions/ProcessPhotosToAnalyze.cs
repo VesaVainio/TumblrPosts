@@ -14,7 +14,7 @@ namespace Functions
     public static class ProcessPhotosToAnalyze
     {
         [FunctionName("ProcessPhotosToAnalyze")]
-        public static async Task Run([TimerTrigger("0 45 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 * * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
@@ -53,6 +53,8 @@ namespace Functions
                     await UpdateBlogInfo(photoToAnalyze, blogInfoTableAdapter);
 
                     processedCount++;
+
+                    await photoToAnalyzeQueueAdapter.DeleteMessage(message);
                 } while (processedCount < 5);
             }
             catch (Exception ex)

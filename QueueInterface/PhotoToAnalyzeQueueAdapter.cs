@@ -34,5 +34,10 @@ namespace QueueInterface
         {
             return await photoToAnalyzeQueue.GetMessageAsync(TimeSpan.FromMinutes(6), null, null);
         }
+
+        public async Task DeleteMessage(CloudQueueMessage message)
+        {
+            await photoToAnalyzeQueue.DeleteMessageAsync(message);
+        }
     }
 }

@@ -2,8 +2,8 @@
 {
     public class HeadPose
     {
-        public double Pitch { get; set; }
-        public double Roll { get; set; }
-        public double Yaw { get; set; }
+        public decimal Pitch { get; set; }
+        public decimal Roll { get; set; }
+        public decimal Yaw { get; set; }
     }
 }

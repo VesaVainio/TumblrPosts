@@ -5,13 +5,13 @@ namespace Model.Canonical
 {
     public class HairAnalysis
     {
-        public double HairBlond { get; set; }
-        public double HairBrown { get; set; }
-        public double HairRed { get; set; }
-        public double HairGray { get; set; }
-        public double HairOther { get; set; }
-        public double HairBlack { get; set; }
-        public double Bald { get; set; }
+        public decimal HairBlond { get; set; }
+        public decimal HairBrown { get; set; }
+        public decimal HairRed { get; set; }
+        public decimal HairGray { get; set; }
+        public decimal HairOther { get; set; }
+        public decimal HairBlack { get; set; }
+        public decimal Bald { get; set; }
 
         public HairAnalysis(Hair hair)
         {

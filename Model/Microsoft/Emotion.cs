@@ -2,13 +2,13 @@
 {
     public class Emotion
     {
-        public double Anger { get; set; }
-        public double Contempt { get; set; }
-        public double Disgust { get; set; }
-        public double Fear { get; set; }
-        public double Happiness { get; set; }
-        public double Neutral { get; set; }
-        public double Sadness { get; set; }
-        public double Surprise { get; set; }
+        public decimal Anger { get; set; }
+        public decimal Contempt { get; set; }
+        public decimal Disgust { get; set; }
+        public decimal Fear { get; set; }
+        public decimal Happiness { get; set; }
+        public decimal Neutral { get; set; }
+        public decimal Sadness { get; set; }
+        public decimal Surprise { get; set; }
     }
 }

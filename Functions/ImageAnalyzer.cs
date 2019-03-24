@@ -78,7 +78,8 @@ namespace Functions
                     ImageAnalysis canonicalImageAnalysis = new ImageAnalysis(visionApiResponse.Responses[0], msAnalysis, msFaces);
                     ImageAnalysisEntity imageAnalysisEntity = new ImageAnalysisEntity
                     {
-                        CanonicalJson = JsonConvert.SerializeObject(canonicalImageAnalysis, JsonUtils.JsonSerializerSettings),
+                        // for canonical truncate decimal precision to 4 decimal places, for others keep original precision
+                        CanonicalJson = JsonConvert.SerializeObject(canonicalImageAnalysis, JsonUtils.AnalysisSerializerSettings),
                         GoogleVisionApiJson = JsonConvert.SerializeObject(visionApiResponse.Responses[0], JsonUtils.JsonSerializerSettings),
                         MsCognitiveFaceDetectJson = JsonConvert.SerializeObject(msFaces, JsonUtils.JsonSerializerSettings)
                     };

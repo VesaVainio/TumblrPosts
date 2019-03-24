@@ -3,6 +3,6 @@
     public interface ILabel
     {
         string Description { get; set; }
-        double Score { get; set; }
+        decimal Score { get; set; }
     }
 }
