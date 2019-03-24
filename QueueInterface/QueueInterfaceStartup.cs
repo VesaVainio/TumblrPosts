@@ -31,6 +31,9 @@ namespace QueueInterface
 
             CloudQueue blogToIndexQueue = queueClient.GetQueueReference(Constants.BlogToIndexQueueName);
             blogToIndexQueue.CreateIfNotExists();
+
+            CloudQueue photoToAnalyzeQueue = queueClient.GetQueueReference(Constants.PhotoToAnalyzeQueueName);
+            photoToAnalyzeQueue.CreateIfNotExists();
         }
     }
 }

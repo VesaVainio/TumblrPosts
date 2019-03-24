@@ -133,6 +133,8 @@
     <Compile Include="Messages\BlobsToFix.cs" />
     <Compile Include="Messages\BlogToIndex.cs" />
     <Compile Include="BlogToIndexQueueAdapter.cs" />
+    <Compile Include="Messages\PhotoToAnalyze.cs" />
+    <Compile Include="PhotoToAnalyzeQueueAdapter.cs" />
     <Compile Include="PostToGetQueueAdapter.cs" />
     <Compile Include="BlogToFetchQueueAdapter.cs" />
     <Compile Include="Messages\BlogToFetch.cs" />

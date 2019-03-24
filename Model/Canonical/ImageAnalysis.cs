@@ -7,7 +7,9 @@ namespace Model.Canonical
 {
     public class ImageAnalysis
     {
-        public string FullText { get; set; }
+        public string[] TokenizedText { get; set; }
+
+        public int WordCount { get; set; }
 
         public Dictionary<string, double> Labels { get; set; }
 
@@ -21,7 +23,8 @@ namespace Model.Canonical
 
         public ImageAnalysis(Response visionResponse, Analysis msAnalysis, List<Face> faces)
         {
-            FullText = visionResponse.FullTextAnnotation.Text;
+            TokenizedText = StringTokenizer.Tokenize(visionResponse.FullTextAnnotation.Text);
+            WordCount = TokenizedText.Length;
 
             Labels = new Dictionary<string, double>();
             AddLabels(visionResponse.LabelAnnotations);
@@ -38,6 +41,7 @@ namespace Model.Canonical
         public void AddLabels(IEnumerable<ILabel> labels)
         {
             foreach (ILabel labelAnnotation in labels)
+            {
                 if (Labels.TryGetValue(labelAnnotation.Description, out double score))
                 {
                     if (score < labelAnnotation.Score) Labels[labelAnnotation.Description] = score; // replace smaller with bigger
@@ -46,6 +50,7 @@ namespace Model.Canonical
                 {
                     Labels.Add(labelAnnotation.Description, labelAnnotation.Score);
                 }
+            }
         }
     }
 }

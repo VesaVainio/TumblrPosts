@@ -35,6 +35,9 @@ namespace TableInterface
 
             CloudTable imageAnalysisTable = tableClient.GetTableReference("ImageAnalysis");
             imageAnalysisTable.CreateIfNotExists();
+
+            CloudTable blogImageAnalysisTable = tableClient.GetTableReference("BlogImageAnalysis");
+            blogImageAnalysisTable.CreateIfNotExists();
         }
     }
 }

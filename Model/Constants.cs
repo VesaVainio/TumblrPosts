@@ -13,5 +13,6 @@
         public const string BlogToFetchQueueName = "blog-to-fetch";
         public const string BlogToIndexQueueName = "blog-to-index";
         public const string PostToGetQueueName = "post-to-get";
+        public const string PhotoToAnalyzeQueueName = "photo-to-analyze";
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.CosmosDB.Table;
+﻿using System;
+using Microsoft.Azure.CosmosDB.Table;
 using TumblrPics.Model.Tumblr;
 
 namespace TableInterface.Entities
@@ -15,6 +16,8 @@ namespace TableInterface.Entities
         /* Proprietary properties */
         public long? LastFetched { get; set; }
         public int? FetchedUntilOffset { get; set; }
+        public DateTime? AnalyzedStartingFrom { get; set; }
+        public DateTime? AnalyzedUntil { get; set; }
 
         public BlogEntity() { }
 

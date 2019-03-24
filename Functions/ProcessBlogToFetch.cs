@@ -29,7 +29,6 @@ namespace Functions
             blogInfoTableAdapter.Init();
 
             PostsGetter postsGetter = new PostsGetter();
-            GetPostsResult result = null;
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -55,6 +54,7 @@ namespace Functions
 
                 success = false;
 
+                GetPostsResult result;
                 if (blogToFetch.NewerThan.HasValue)
                 {
                     result = await postsGetter.GetNewerPosts(log, blogToFetch.Blogname, blogToFetch.NewerThan.Value, timeoutLeft);
