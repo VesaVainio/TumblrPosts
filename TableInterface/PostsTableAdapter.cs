@@ -16,15 +16,14 @@ namespace TableInterface
     {
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
-        private static List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
-        private static List<string> FrontendColumns = new List<string> { "PartitionKey", "RowKey", "Date", "PhotoBlobUrls", "Type" };
+        private static readonly List<string> PartitionAndRowKey = new List<string> { "PartitionKey", "RowKey" };
 
         private CloudTable postsTable;
         private TraceWriter log;
 
-        public void Init(TraceWriter log)
+        public void Init(TraceWriter logParameter)
         {
-            this.log = log;
+            log = logParameter;
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
@@ -106,15 +105,7 @@ namespace TableInterface
             return result.Select(x => x.PartitionKey).Distinct().ToList();
         }
 
-        public List<PostEntity> GetMostRecent(string blogName, int maxCount = 50, int offset = 0)
-        {
-            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
-            TableQuery<PostEntity> query = new TableQuery<PostEntity>().Where(pkFilter).Select(FrontendColumns);
-            IEnumerable<PostEntity> result = postsTable.ExecuteQuery(query);
-            return result.OrderByDescending(x => x.RowKey).Skip(offset).Take(maxCount).ToList();
-        }
-
-        public void MarkPhotosAsDownloaded(string blogName, string postId, List<Model.Site.Photo> sitePhotos)
+        public void MarkPhotosAsDownloaded(string blogName, string postId, List<Photo> sitePhotos)
         {
             PhotoDownloadCompleteEntity entity = new PhotoDownloadCompleteEntity
             {

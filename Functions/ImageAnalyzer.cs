@@ -81,7 +81,8 @@ namespace Functions
                         // for canonical truncate decimal precision to 4 decimal places, for others keep original precision
                         CanonicalJson = JsonConvert.SerializeObject(canonicalImageAnalysis, JsonUtils.AnalysisSerializerSettings),
                         GoogleVisionApiJson = JsonConvert.SerializeObject(visionApiResponse.Responses[0], JsonUtils.JsonSerializerSettings),
-                        MsCognitiveFaceDetectJson = JsonConvert.SerializeObject(msFaces, JsonUtils.JsonSerializerSettings)
+                        MsCognitiveFaceDetectJson = JsonConvert.SerializeObject(msFaces, JsonUtils.JsonSerializerSettings),
+                        MsAnalysisJson = JsonConvert.SerializeObject(msAnalysis, JsonUtils.JsonSerializerSettings)
                     };
                     imageAnalysisTableAdapter.InsertImageAnalysis(imageAnalysisEntity, photoToAnalyze.Url);
                     imageAnalysisTableAdapter.InsertBlogImageAnalysis(SanitizeSourceBlog(photoToAnalyze.Blog), photoToAnalyze.Url);

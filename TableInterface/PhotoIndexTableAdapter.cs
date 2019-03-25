@@ -68,12 +68,5 @@ namespace TableInterface
             IEnumerable<PhotoIndexEntity> result = photoIndexTable.ExecuteQuery(query);
             return result.ToList();
         }
-
-        public List<PhotoIndexEntity> GetAll()
-        {
-            TableQuery<PhotoIndexEntity> query = new TableQuery<PhotoIndexEntity>();
-            IEnumerable<PhotoIndexEntity> result = photoIndexTable.ExecuteQuery(query);
-            return result.ToList();
-        }
     }
 }

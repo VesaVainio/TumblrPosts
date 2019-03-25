@@ -1,4 +1,7 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
 using System.Net;
 using Microsoft.Azure.CosmosDB.Table;
 using Microsoft.Azure.Storage;
@@ -8,8 +11,8 @@ namespace TableInterface
 {
     public class ImageAnalysisTableAdapter
     {
-        private CloudTable imageAnalysisTable;
         private CloudTable blogImageAnalysisTable;
+        private CloudTable imageAnalysisTable;
 
         public void Init()
         {
@@ -24,7 +27,7 @@ namespace TableInterface
         public void InsertBlogImageAnalysis(string blogname, string photoUrl)
         {
             string encodedUrl = WebUtility.UrlEncode(photoUrl);
-            TableEntity entity = new TableEntity {PartitionKey = blogname, RowKey = encodedUrl};
+            TableEntity entity = new TableEntity { PartitionKey = blogname, RowKey = encodedUrl };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
             blogImageAnalysisTable.Execute(insertOrMergeOperation);
@@ -38,6 +41,17 @@ namespace TableInterface
             imageAnalysisTable.Execute(insertOrMergeOperation);
         }
 
+        public void UpdateImageAnalysis(ImageAnalysisEntity imageAnalysisEntity)
+        {
+            if (imageAnalysisEntity.PartitionKey == null || imageAnalysisEntity.RowKey == null)
+            {
+                throw new InvalidOperationException("Can only update entities with valid PartitionKey and RowKey");
+            }
+
+            TableOperation mergeOperation = TableOperation.Merge(imageAnalysisEntity);
+            imageAnalysisTable.Execute(mergeOperation);
+        }
+
         public ImageAnalysisEntity GetImageAnalysis(string photoUrl)
         {
             string encodedUrl = WebUtility.UrlEncode(photoUrl);
@@ -45,11 +59,18 @@ namespace TableInterface
             TableResult result = imageAnalysisTable.Execute(retrieveOperation);
             if (result.HttpStatusCode == 200)
             {
-                ImageAnalysisEntity entity = (ImageAnalysisEntity)result.Result;
+                ImageAnalysisEntity entity = (ImageAnalysisEntity) result.Result;
                 return entity;
             }
 
             return null;
+        }
+
+        public List<ImageAnalysisEntity> GetAll()
+        {
+            TableQuery<ImageAnalysisEntity> query = new TableQuery<ImageAnalysisEntity>();
+            IEnumerable<ImageAnalysisEntity> result = imageAnalysisTable.ExecuteQuery(query);
+            return result.ToList();
         }
     }
 }

@@ -7,5 +7,6 @@ namespace TableInterface.Entities
         public string CanonicalJson { get; set; }
         public string GoogleVisionApiJson { get; set; }
         public string MsCognitiveFaceDetectJson { get; set; }
+        public string MsAnalysisJson { get; set; }
     }
 }
