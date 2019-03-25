@@ -42,6 +42,11 @@ namespace Model.Canonical
         {
             foreach (ILabel labelAnnotation in labels)
             {
+                if (string.IsNullOrEmpty(labelAnnotation.Description))
+                {
+                    continue;
+                }
+
                 if (Labels.TryGetValue(labelAnnotation.Description, out decimal score))
                 {
                     if (score < labelAnnotation.Score) Labels[labelAnnotation.Description] = score; // replace smaller with bigger

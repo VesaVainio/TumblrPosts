@@ -1,14 +1,18 @@
-﻿using System;
+﻿using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Model
 {
     public static class StringTokenizer
     {
-        private static readonly char[] DelimiterChars = {' ', ',', '.', ':', '\n', '-', ';'};
+        private static readonly Regex SplitRegex = new Regex("[^\\w']", RegexOptions.Compiled);
 
         public static string[] Tokenize(string text)
         {
-            string[] words = text.Split(DelimiterChars, StringSplitOptions.RemoveEmptyEntries);
+            string[] words = SplitRegex.Split(text.ToLower(CultureInfo.InvariantCulture));
+            words = words.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+
             return words;
         }
     }
