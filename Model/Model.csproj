@@ -50,6 +50,7 @@
     <Compile Include="Google\BoundingBox.cs" />
     <Compile Include="Google\BoundingPoly.cs" />
     <Compile Include="Google\DetectedLanguage.cs" />
+    <Compile Include="Google\Error.cs" />
     <Compile Include="Google\Feature.cs" />
     <Compile Include="Google\FullTextAnnotation.cs" />
     <Compile Include="Google\ILabel.cs" />

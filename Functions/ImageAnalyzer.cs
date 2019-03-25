@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http;
@@ -40,6 +41,12 @@ namespace Functions
                 VisionApiResponse visionApiResponse =
                     JsonConvert.DeserializeObject<VisionApiResponse>(googleVisionResponseString, JsonUtils.GoogleSerializerSettings);
 
+                if (visionApiResponse?.Responses[0].Error != null)
+                {
+                    log.Warning($"Got error response from Google API: {visionApiResponse?.Responses[0].Error.Message}");
+                    return;
+                }
+
                 log.Info($"Google Vision for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
                 stopwatch.Restart();
 
@@ -53,7 +60,17 @@ namespace Functions
                 responseContent = response.Content;
 
                 string msDetectResponseString = await responseContent.ReadAsStringAsync();
-                List<Face> msFaces = JsonConvert.DeserializeObject<List<Face>>(msDetectResponseString);
+
+                List<Face> msFaces;
+                try
+                {
+                    msFaces = JsonConvert.DeserializeObject<List<Face>>(msDetectResponseString);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Error while trying to deserialize MS detect response. Response string was: \"{msDetectResponseString}\"", ex);
+                    msFaces = new List<Face>();
+                }
 
                 log.Info($"MS Faces for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
                 stopwatch.Restart();
@@ -84,6 +101,14 @@ namespace Functions
                         MsCognitiveFaceDetectJson = JsonConvert.SerializeObject(msFaces, JsonUtils.JsonSerializerSettings),
                         MsAnalysisJson = JsonConvert.SerializeObject(msAnalysis, JsonUtils.JsonSerializerSettings)
                     };
+
+                    if (imageAnalysisEntity.GoogleVisionApiJson.Length > 50000)
+                    {
+                        log.Warning($"Google vision API response JSON is {imageAnalysisEntity.GoogleVisionApiJson.Length} chars, removing TextAnnotations");
+                        visionApiResponse.Responses[0].TextAnnotations = null;
+                        imageAnalysisEntity.GoogleVisionApiJson = JsonConvert.SerializeObject(visionApiResponse.Responses[0], JsonUtils.JsonSerializerSettings);
+                    }
+
                     imageAnalysisTableAdapter.InsertImageAnalysis(imageAnalysisEntity, photoToAnalyze.Url);
                     imageAnalysisTableAdapter.InsertBlogImageAnalysis(SanitizeSourceBlog(photoToAnalyze.Blog), photoToAnalyze.Url);
                     log.Info($"All analyses for {photoToAnalyze.Url} saved in {stopwatch.ElapsedMilliseconds}ms");

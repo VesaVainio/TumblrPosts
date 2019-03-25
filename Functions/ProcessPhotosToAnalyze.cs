@@ -55,7 +55,7 @@ namespace Functions
                     processedCount++;
 
                     await photoToAnalyzeQueueAdapter.DeleteMessage(message);
-                } while (processedCount < 5);
+                } while (processedCount < 10);
             }
             catch (Exception ex)
             {

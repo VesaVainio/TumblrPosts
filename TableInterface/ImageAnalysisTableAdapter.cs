@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Linq;
 using System.Net;
 using Microsoft.Azure.CosmosDB.Table;
@@ -38,7 +39,14 @@ namespace TableInterface
             imageAnalysisEntity.PartitionKey = WebUtility.UrlEncode(photoUrl);
             imageAnalysisEntity.RowKey = "analysis";
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(imageAnalysisEntity);
-            imageAnalysisTable.Execute(insertOrMergeOperation);
+            try
+            {
+                imageAnalysisTable.Execute(insertOrMergeOperation);
+            }
+            catch (Exception ex)
+            {
+                throw new DataException($"InsertImageAnalysis failed with URL {photoUrl}", ex);
+            }
         }
 
         public void UpdateImageAnalysis(ImageAnalysisEntity imageAnalysisEntity)

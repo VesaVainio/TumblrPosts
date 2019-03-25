@@ -23,12 +23,28 @@ namespace Model.Canonical
 
         public ImageAnalysis(Response visionResponse, Analysis msAnalysis, List<Face> faces)
         {
-            TokenizedText = StringTokenizer.Tokenize(visionResponse.FullTextAnnotation.Text);
-            WordCount = TokenizedText.Length;
+            if (visionResponse.FullTextAnnotation?.Text == null)
+            {
+                TokenizedText = new string[0];
+                WordCount = 0;
+            }
+            else
+            {
+                TokenizedText = StringTokenizer.Tokenize(visionResponse.FullTextAnnotation.Text);
+                WordCount = TokenizedText.Length;
+            }
 
             Labels = new Dictionary<string, decimal>();
-            AddLabels(visionResponse.LabelAnnotations);
-            AddLabels(visionResponse.WebDetection.WebEntities);
+
+            if (visionResponse.LabelAnnotations != null)
+            {
+                AddLabels(visionResponse.LabelAnnotations);
+            }
+
+            if (visionResponse.WebDetection?.WebEntities != null)
+            {
+                AddLabels(visionResponse.WebDetection.WebEntities);
+            }
 
             Width = msAnalysis.Metadata.Width;
             Height = msAnalysis.Metadata.Height;
@@ -49,7 +65,10 @@ namespace Model.Canonical
 
                 if (Labels.TryGetValue(labelAnnotation.Description, out decimal score))
                 {
-                    if (score < labelAnnotation.Score) Labels[labelAnnotation.Description] = score; // replace smaller with bigger
+                    if (score < labelAnnotation.Score)
+                    {
+                        Labels[labelAnnotation.Description] = score; // replace smaller with bigger
+                    }
                 }
                 else
                 {

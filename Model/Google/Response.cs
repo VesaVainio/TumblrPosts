@@ -8,5 +8,6 @@ namespace Model.Google
         public IList<TextAnnotation> TextAnnotations { get; set; }
         public FullTextAnnotation FullTextAnnotation { get; set; }
         public WebDetection WebDetection { get; set; }
+        public Error Error { get; set; }
     }
 }
