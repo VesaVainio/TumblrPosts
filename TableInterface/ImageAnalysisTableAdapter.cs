@@ -12,6 +12,8 @@ namespace TableInterface
 {
     public class ImageAnalysisTableAdapter
     {
+        private static readonly List<string> CanonicalColumns = new List<string> { "PartitionKey", "RowKey", "CanonicalJson" };
+
         private CloudTable blogImageAnalysisTable;
         private CloudTable imageAnalysisTable;
 
@@ -77,6 +79,13 @@ namespace TableInterface
         public List<ImageAnalysisEntity> GetAll()
         {
             TableQuery<ImageAnalysisEntity> query = new TableQuery<ImageAnalysisEntity>();
+            IEnumerable<ImageAnalysisEntity> result = imageAnalysisTable.ExecuteQuery(query);
+            return result.ToList();
+        }
+
+        public List<ImageAnalysisEntity> GetAllCanonical()
+        {
+            TableQuery<ImageAnalysisEntity> query = new TableQuery<ImageAnalysisEntity>().Select(CanonicalColumns);
             IEnumerable<ImageAnalysisEntity> result = imageAnalysisTable.ExecuteQuery(query);
             return result.ToList();
         }

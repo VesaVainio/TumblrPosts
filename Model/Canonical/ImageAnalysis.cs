@@ -21,6 +21,8 @@ namespace Model.Canonical
         public int FemaleFaces { get; set; }
         public int MaleFaces { get; set; }
 
+        public ImageAnalysis() { }
+
         public ImageAnalysis(Response visionResponse, Analysis msAnalysis, List<Face> faces)
         {
             if (visionResponse.FullTextAnnotation?.Text == null)

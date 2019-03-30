@@ -13,6 +13,8 @@ namespace Model.Canonical
         public decimal HairBlack { get; set; }
         public decimal Bald { get; set; }
 
+        public HairAnalysis() { }
+
         public HairAnalysis(Hair hair)
         {
             Bald = hair.Bald;

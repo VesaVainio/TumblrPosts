@@ -38,6 +38,9 @@ namespace TableInterface
 
             CloudTable blogImageAnalysisTable = tableClient.GetTableReference("BlogImageAnalysis");
             blogImageAnalysisTable.CreateIfNotExists();
+
+            CloudTable tokenAllocationTable = tableClient.GetTableReference("TokenAllocation");
+            tokenAllocationTable.CreateIfNotExists();
         }
     }
 }

@@ -15,6 +15,8 @@ namespace Model.Canonical
         public Makeup Makeup { get; set; }
         public HairAnalysis Hair { get; set; }
 
+        public FaceAnalysis() { }
+
         public FaceAnalysis(Face msFace, Metadata metadata)
         {
             Proportion = Convert.ToDecimal(Math.Sqrt(Math.Pow(msFace.FaceRectangle.Width, 2) + Math.Pow(msFace.FaceRectangle.Height, 2)) /

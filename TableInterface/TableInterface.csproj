@@ -194,6 +194,7 @@
   <ItemGroup>
     <Compile Include="BlogInfoTableAdapter.cs" />
     <Compile Include="Entities\BlogEntity.cs" />
+    <Compile Include="Entities\FrequencyEntity.cs" />
     <Compile Include="Entities\ImageAnalysisEntity.cs" />
     <Compile Include="Entities\Partial\PostNotFoundEntity.cs" />
     <Compile Include="Entities\BlogStats.cs" />
@@ -209,6 +210,7 @@
     <Compile Include="LikeIndexTableAdapter.cs" />
     <Compile Include="ReversePostsTableAdapter.cs" />
     <Compile Include="TableInterfaceStartup.cs" />
+    <Compile Include="TokenAllocationTableAdapter.cs" />
     <Compile Include="VideoIndexTableAdapter.cs" />
     <Compile Include="PhotoIndexTableAdapter.cs" />
     <Compile Include="PostsTableAdapter.cs" />
