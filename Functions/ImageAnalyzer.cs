@@ -102,11 +102,29 @@ namespace Functions
                         MsAnalysisJson = JsonConvert.SerializeObject(msAnalysis, JsonUtils.JsonSerializerSettings)
                     };
 
-                    if (imageAnalysisEntity.GoogleVisionApiJson.Length > 50000)
+                    if (imageAnalysisEntity.GoogleVisionApiJson.Length > 45000)
                     {
                         log.Warning($"Google vision API response JSON is {imageAnalysisEntity.GoogleVisionApiJson.Length} chars, removing TextAnnotations");
                         visionApiResponse.Responses[0].TextAnnotations = null;
                         imageAnalysisEntity.GoogleVisionApiJson = JsonConvert.SerializeObject(visionApiResponse.Responses[0], JsonUtils.JsonSerializerSettings);
+                    }
+
+                    if (imageAnalysisEntity.GoogleVisionApiJson.Length > 45000)
+                    {
+                        log.Warning($"GoogleVisionApiJson still is {imageAnalysisEntity.GoogleVisionApiJson.Length} chars after removing TextAnnotations");
+                    }
+
+                    if (imageAnalysisEntity.CanonicalJson.Length > 45000)
+                    {
+                        log.Warning($"CanonicalJson is {imageAnalysisEntity.CanonicalJson.Length} chars");
+                    }
+                    if (imageAnalysisEntity.MsCognitiveFaceDetectJson.Length > 45000)
+                    {
+                        log.Warning($"MsCognitiveFaceDetectJson is {imageAnalysisEntity.MsCognitiveFaceDetectJson.Length} chars");
+                    }
+                    if (imageAnalysisEntity.MsAnalysisJson.Length > 45000)
+                    {
+                        log.Warning($"MsAnalysisJson is {imageAnalysisEntity.MsAnalysisJson.Length} chars");
                     }
 
                     imageAnalysisTableAdapter.InsertImageAnalysis(imageAnalysisEntity, photoToAnalyze.Url);
