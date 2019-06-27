@@ -18,7 +18,7 @@ namespace Functions
 {
     public static class ImageAnalyzer
     {
-        public static async Task AnalyzePhoto(TraceWriter log, PhotoToAnalyze photoToAnalyze, ImageAnalysisTableAdapter imageAnalysisTableAdapter)
+        public static async Task<string> AnalyzePhoto(TraceWriter log, PhotoToAnalyze photoToAnalyze, ImageAnalysisTableAdapter imageAnalysisTableAdapter)
         {
             using (HttpClient httpClient = new HttpClient())
             {
@@ -43,8 +43,9 @@ namespace Functions
 
                 if (visionApiResponse?.Responses[0].Error != null)
                 {
-                    log.Warning($"Got error response from Google API: {visionApiResponse?.Responses[0].Error.Message}");
-                    return;
+                    string failure = $"Got error response from Google API: {visionApiResponse.Responses[0].Error.Message}";
+                    log.Warning(failure);
+                    return failure;
                 }
 
                 log.Info($"Google Vision for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
@@ -68,8 +69,9 @@ namespace Functions
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Error while trying to deserialize MS detect response. Response string was: \"{msDetectResponseString}\"", ex);
-                    msFaces = new List<Face>();
+                    string failure = $"Error while trying to deserialize MS detect response. Response string was: \"{msDetectResponseString}\"";
+                    log.Error(failure, ex);
+                    return failure;
                 }
 
                 log.Info($"MS Faces for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
@@ -90,7 +92,7 @@ namespace Functions
                 log.Info($"MS Analysis for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
                 stopwatch.Restart();
 
-                if (visionApiResponse.Responses.Count == 1 && msAnalysis != null)
+                if (visionApiResponse?.Responses.Count == 1 && msAnalysis != null)
                 {
                     ImageAnalysis canonicalImageAnalysis = new ImageAnalysis(visionApiResponse.Responses[0], msAnalysis, msFaces);
                     ImageAnalysisEntity imageAnalysisEntity = new ImageAnalysisEntity
@@ -130,11 +132,11 @@ namespace Functions
                     imageAnalysisTableAdapter.InsertImageAnalysis(imageAnalysisEntity, photoToAnalyze.Url);
                     imageAnalysisTableAdapter.InsertBlogImageAnalysis(SanitizeSourceBlog(photoToAnalyze.Blog), photoToAnalyze.Url);
                     log.Info($"All analyses for {photoToAnalyze.Url} saved in {stopwatch.ElapsedMilliseconds}ms");
+                    return null;
                 }
-                else
-                {
-                    log.Warning("Failed to get all responses");
-                }
+
+                log.Warning("Failed to get all responses");
+                return "Failed to get all responses";
             }
         }
 

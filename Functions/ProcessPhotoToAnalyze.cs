@@ -14,7 +14,7 @@ namespace Functions
     public static class ProcessPhotoToAnalyze
     {
         [FunctionName("ProcessPhotoToAnalyze")]
-        public static async Task Run([TimerTrigger("0 32 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 15,45 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
@@ -50,9 +50,17 @@ namespace Functions
                         continue;
                     }
 
-                    await ImageAnalyzer.AnalyzePhoto(log, photoToAnalyze, imageAnalysisTableAdapter);
-
-                    await UpdateBlogInfo(photoToAnalyze, blogInfoTableAdapter);
+                    string failure = await ImageAnalyzer.AnalyzePhoto(log, photoToAnalyze, imageAnalysisTableAdapter);
+                    if (string.IsNullOrEmpty(failure))
+                    {
+                        await UpdateBlogInfo(photoToAnalyze, blogInfoTableAdapter);
+                    }
+                    else
+                    {
+                        photoToAnalyze.Error = failure;
+                        await photoToAnalyzeQueueAdapter.SendToPoisonQueue(photoToAnalyze);
+                        log.Info($"Message for {photoToAnalyze.Url} stored to poison queue");
+                    }
 
                     processedCount++;
 
