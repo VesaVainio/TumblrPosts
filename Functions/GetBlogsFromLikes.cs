@@ -54,7 +54,7 @@ namespace Functions
                     }
 
                     string url = "https://api.tumblr.com/v2/blog/" + blogStatsRow.Blogname + "/info?api_key=" + apiKey;
-                    log.Info("Making request to: " + url);
+                    //log.Info("Making request to: " + url);
                     HttpResponseMessage response = await httpClient.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
@@ -76,7 +76,7 @@ namespace Functions
                         }
                         else if (blogStatsRow.HadPostCount > Constants.MaxPostsToFetch)
                         {
-                            log.Info("Already fetched " + blogStatsRow.HadPostCount + " posts from blog");
+                            log.Info("Already fetched " + blogStatsRow.HadPostCount + " posts from blog " + blogStatsRow.Blogname);
                         }
                         else if (difference > 5)
                         {

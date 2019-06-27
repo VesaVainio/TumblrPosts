@@ -11,18 +11,20 @@ using TableInterface.Entities;
 
 namespace Functions
 {
-    public static class ProcessPhotosToAnalyze
+    public static class ProcessPhotoToAnalyze
     {
-        [FunctionName("ProcessPhotosToAnalyze")]
-        public static async Task Run([TimerTrigger("0 15,45 * * * *")]TimerInfo myTimer, TraceWriter log)
+        [FunctionName("ProcessPhotoToAnalyze")]
+        public static async Task Run([TimerTrigger("0 32 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
+            PhotoToAnalyzeQueueAdapter photoToAnalyzeQueueAdapter = new PhotoToAnalyzeQueueAdapter();
+            photoToAnalyzeQueueAdapter.Init();
+            CloudQueueMessage message = null;
+            PhotoToAnalyze photoToAnalyze = null;
+
             try
             {
-                PhotoToAnalyzeQueueAdapter photoToAnalyzeQueueAdapter = new PhotoToAnalyzeQueueAdapter();
-                photoToAnalyzeQueueAdapter.Init();
-
                 ImageAnalysisTableAdapter imageAnalysisTableAdapter = new ImageAnalysisTableAdapter();
                 imageAnalysisTableAdapter.Init();
 
@@ -33,13 +35,13 @@ namespace Functions
 
                 do
                 {
-                    CloudQueueMessage message = await photoToAnalyzeQueueAdapter.GetNextMessage();
+                    message = await photoToAnalyzeQueueAdapter.GetNextMessage();
                     if (message == null)
                     {
                         return;
                     }
 
-                    PhotoToAnalyze photoToAnalyze = JsonConvert.DeserializeObject<PhotoToAnalyze>(message.AsString);
+                    photoToAnalyze = JsonConvert.DeserializeObject<PhotoToAnalyze>(message.AsString);
 
                     if (imageAnalysisTableAdapter.GetImageAnalysis(photoToAnalyze.Url) != null)
                     {
@@ -59,7 +61,18 @@ namespace Functions
             }
             catch (Exception ex)
             {
-                log.Error("Error in ProcessPhotosToAnalyze", ex);
+                log.Error("Error in ProcessPhotosToAnalyze: " + ex.Message, ex);
+
+                if (message != null && photoToAnalyze != null)
+                {
+                    photoToAnalyze.Error = ex.Message;
+                    photoToAnalyze.StackTrace = ex.StackTrace.Substring(0, 40000);
+                    await photoToAnalyzeQueueAdapter.SendToPoisonQueue(photoToAnalyze);
+                    log.Info($"Message for {photoToAnalyze.Url} stored to poison queue");
+                    await photoToAnalyzeQueueAdapter.DeleteMessage(message);
+                    log.Info($"Failed message deleted successfully from main queue");
+                    message = null;
+                }
             }
         }
 

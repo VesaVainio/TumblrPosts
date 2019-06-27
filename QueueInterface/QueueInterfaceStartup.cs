@@ -34,6 +34,9 @@ namespace QueueInterface
 
             CloudQueue photoToAnalyzeQueue = queueClient.GetQueueReference(Constants.PhotoToAnalyzeQueueName);
             photoToAnalyzeQueue.CreateIfNotExists();
+
+            CloudQueue photoToAnalyzePoisonQueue = queueClient.GetQueueReference(Constants.PhotoToAnalyzeQueueName + "-poison");
+            photoToAnalyzePoisonQueue.CreateIfNotExists();
         }
     }
 }

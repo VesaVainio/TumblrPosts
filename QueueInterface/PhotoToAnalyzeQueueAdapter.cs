@@ -12,6 +12,7 @@ namespace QueueInterface
     public class PhotoToAnalyzeQueueAdapter
     {
         private CloudQueue photoToAnalyzeQueue;
+        private CloudQueue photoToAnalyzePoisonQueue;
 
         public void Init()
         {
@@ -21,6 +22,7 @@ namespace QueueInterface
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             photoToAnalyzeQueue = queueClient.GetQueueReference(Constants.PhotoToAnalyzeQueueName);
+            photoToAnalyzePoisonQueue = queueClient.GetQueueReference(Constants.PhotoToAnalyzeQueueName + "-poison");
         }
 
         public void Send(PhotoToAnalyze photoToAnalyze)
@@ -28,6 +30,13 @@ namespace QueueInterface
             string jsonMessage = JsonConvert.SerializeObject(photoToAnalyze);
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
             photoToAnalyzeQueue.AddMessage(message);
+        }
+
+        public async Task SendToPoisonQueue(PhotoToAnalyze photoToAnalyze)
+        {
+            string jsonMessage = JsonConvert.SerializeObject(photoToAnalyze);
+            CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
+            await photoToAnalyzePoisonQueue.AddMessageAsync(message);
         }
 
         public async Task<CloudQueueMessage> GetNextMessage()

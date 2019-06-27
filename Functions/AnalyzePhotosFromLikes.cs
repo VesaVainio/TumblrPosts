@@ -29,6 +29,9 @@ namespace Functions
             PostsTableAdapter postsTableAdapter = new PostsTableAdapter();
             postsTableAdapter.Init(log);
 
+            ImageAnalysisTableAdapter imageAnalysisTableAdapter = new ImageAnalysisTableAdapter();
+            imageAnalysisTableAdapter.Init();
+
             PhotoToAnalyzeQueueAdapter photoToAnalyzeQueueAdapter = new PhotoToAnalyzeQueueAdapter();
             photoToAnalyzeQueueAdapter.Init();
 
@@ -73,6 +76,12 @@ namespace Functions
                     }
 
                     string url = blobBaseUrl + "/" + original.Container + "/" + photo.Name + "_" + original.Nominal + "." + photo.Extension;
+
+                    if (imageAnalysisTableAdapter.GetImageAnalysis(url) != null)
+                    {
+                        log.Info($"Image {url} already analyzed");
+                        continue;
+                    }
 
                     PhotoToAnalyze message = new PhotoToAnalyze
                     {
