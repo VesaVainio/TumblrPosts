@@ -20,6 +20,7 @@ namespace QueueInterface
             RetryPoisonMesssages(queueClient, Constants.PhotosToDownloadQueueName, log);
             RetryPoisonMesssages(queueClient, Constants.VideosToDownloadQueueName, log);
             RetryPoisonMesssages(queueClient, Constants.BlogToIndexQueueName, log);
+            RetryPoisonMesssages(queueClient, Constants.PhotoToAnalyzeQueueName, log);
         }
 
         private static int RetryPoisonMesssages(CloudQueueClient queueClient, string queueName, TraceWriter log)
