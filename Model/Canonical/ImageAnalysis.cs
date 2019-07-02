@@ -48,8 +48,11 @@ namespace Model.Canonical
                 AddLabels(visionResponse.WebDetection.WebEntities);
             }
 
-            Width = msAnalysis.Metadata.Width;
-            Height = msAnalysis.Metadata.Height;
+            if (msAnalysis.Metadata != null)
+            {
+                Width = msAnalysis.Metadata.Width;
+                Height = msAnalysis.Metadata.Height;
+            }
 
             Faces = faces.Take(4).Select(x => new FaceAnalysis(x, msAnalysis.Metadata)).ToList();
             FemaleFaces = faces.Count(x => x.FaceAttributes.Gender.Equals("female"));
