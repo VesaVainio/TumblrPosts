@@ -11,7 +11,15 @@ namespace Model.Google
         {
             return new VisionApiRequest
             {
-                Requests = imageUris.Select(Request.CreateWithDefaultFeatures).ToList()
+                Requests = imageUris.Select(Request.CreateWithSourceAndDefaultFeatures).ToList()
+            };
+        }
+
+        public static VisionApiRequest CreateFromContent(byte[] imageContent)
+        {
+            return new VisionApiRequest
+            {
+                Requests = new List<Request> { Request.CreateWithContentAndDefaultFeatures(imageContent) }
             };
         }
     }

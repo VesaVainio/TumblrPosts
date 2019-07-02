@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Model.Google
 {
@@ -25,13 +26,25 @@ namespace Model.Google
         public Image Image { get; set; }
         public List<Feature> Features { get; set; }
 
-        public static Request CreateWithDefaultFeatures(string imageUri)
+        public static Request CreateWithSourceAndDefaultFeatures(string imageUri)
         {
             return new Request
             {
                 Image = new Image
                 {
                     Source = new ImageSource {ImageUri = imageUri}
+                },
+                Features = DefaultFeatures
+            };
+        }
+
+        public static Request CreateWithContentAndDefaultFeatures(byte[] content)
+        {
+            return new Request
+            {
+                Image = new Image
+                {
+                    Content = Convert.ToBase64String(content)
                 },
                 Features = DefaultFeatures
             };
