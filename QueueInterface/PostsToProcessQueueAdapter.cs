@@ -18,9 +18,9 @@ namespace QueueInterface
         private CloudQueue postsToProcessQueue;
         private TraceWriter log;
 
-        public void Init(TraceWriter log)
+        public void Init(TraceWriter traceWriter)
         {
-            this.log = log;
+            log = traceWriter;
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
 
@@ -56,7 +56,8 @@ namespace QueueInterface
 
                     return true;
                 }
-                else if (!terminateRecursion)
+
+                if (!terminateRecursion)
                 {
                     bool result = SendPostsToProcess(postsArray, likerBlogName, true);
                     if (!result)
@@ -65,10 +66,8 @@ namespace QueueInterface
                     }
                     return result;
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             }
 
             CloudQueueMessage message = new CloudQueueMessage(jsonMessage);
