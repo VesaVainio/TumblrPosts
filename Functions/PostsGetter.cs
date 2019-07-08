@@ -1,11 +1,11 @@
-﻿using Microsoft.Azure.WebJobs.Host;
-using QueueInterface;
-using System;
+﻿using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs.Host;
+using QueueInterface;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
@@ -15,7 +15,8 @@ namespace Functions
 {
     public class PostsGetter
     {
-        public async Task<GetPostsResult> GetPosts(TraceWriter log, string blogname, int startingOffset = 0, int maxOffset = Constants.MaxPostsToFetch, long timeoutSeconds = 270)
+        public async Task<GetPostsResult> GetPosts(TraceWriter log, string blogname, int startingOffset = 0, int maxOffset = Constants.MaxPostsToFetch,
+            long timeoutSeconds = 270)
         {
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);
@@ -25,7 +26,6 @@ namespace Functions
 
             long totalInBlog = 0;
             long totalReceived = 0;
-            BlogPosts blogPosts = null;
             Blog blog = null;
             bool success = true;
             int offset = startingOffset;
@@ -44,7 +44,7 @@ namespace Functions
                     if (response.IsSuccessStatusCode)
                     {
                         TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
-                        blogPosts = tumblrResponse.Response;
+                        BlogPosts blogPosts = tumblrResponse.Response;
 
                         totalInBlog = blogPosts.Blog.Posts;
                         blog = blogPosts.Blog;
@@ -70,9 +70,11 @@ namespace Functions
                 } while (offset < totalInBlog && offset < maxOffset);
             }
 
-            BlogEntity blogEntity = new BlogEntity(blog);
-            blogEntity.FetchedUntilOffset = offset;
-            blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
+            BlogEntity blogEntity = new BlogEntity(blog)
+            {
+                FetchedUntilOffset = offset,
+                LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow)
+            };
             blogInfoTableAdapter.InsertBlog(blogEntity);
 
             return new GetPostsResult
@@ -93,7 +95,6 @@ namespace Functions
 
             long totalInBlog = 0;
             long totalReceived = 0;
-            BlogPosts blogPosts = null;
             Blog blog = null;
             bool success = true;
 
@@ -111,7 +112,8 @@ namespace Functions
                     if (linkUrl == null)
                     {
                         // start from newest posts
-                        url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?before=" + FunctionUtilities.GetUnixTime(DateTime.UtcNow) + "&api_key=" + apiKey;
+                        url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?before=" + FunctionUtilities.GetUnixTime(DateTime.UtcNow) + "&api_key=" +
+                              apiKey;
                     }
                     else
                     {
@@ -123,12 +125,12 @@ namespace Functions
                     if (response.IsSuccessStatusCode)
                     {
                         TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
-                        blogPosts = tumblrResponse.Response;
+                        BlogPosts blogPosts = tumblrResponse.Response;
 
                         totalInBlog = blogPosts.Blog.Posts;
                         blog = blogPosts.Blog;
                         totalReceived += blogPosts.Posts.Count;
-                        if (blogPosts._links != null && blogPosts._links.Next != null)
+                        if (blogPosts._links?.Next != null)
                         {
                             linkUrl = blogPosts._links.Next.Href;
                         }
@@ -144,10 +146,9 @@ namespace Functions
                                 // have reached the point that was gotten previously
                                 postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts.Where(x => x.Timestamp >= newerThan));
                                 break;
-                            } else
-                            {
-                                postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
                             }
+
+                            postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
                         }
                     }
                     else
@@ -166,8 +167,10 @@ namespace Functions
 
             if (blog != null)
             {
-                BlogEntity blogEntity = new BlogEntity(blog);
-                blogEntity.LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow);
+                BlogEntity blogEntity = new BlogEntity(blog)
+                {
+                    LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow)
+                };
                 blogInfoTableAdapter.InsertBlog(blogEntity);
             }
 

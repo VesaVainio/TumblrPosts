@@ -1,12 +1,12 @@
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using QueueInterface;
 using QueueInterface.Messages;
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
@@ -16,7 +16,7 @@ namespace Functions
     public static class ProcessBlogToFetch
     {
         [FunctionName("ProcessBlogToFetch")]
-        public static async Task Run([TimerTrigger("0 25 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 09 * * * *")] TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
@@ -32,7 +32,7 @@ namespace Functions
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            bool success = false;
+            bool success = false; // basically means that can the message be deleted, or if it needs to be left in queue to be resumed later
 
             do
             {
@@ -46,7 +46,7 @@ namespace Functions
 
                 BlogEntity blogEntity = await blogInfoTableAdapter.GetBlog(blogToFetch.Blogname);
 
-                long timeoutLeft = 270 - (stopwatch.ElapsedMilliseconds / 1000);
+                long timeoutLeft = 270 - stopwatch.ElapsedMilliseconds / 1000;
                 if (timeoutLeft < 10)
                 {
                     return;
@@ -78,7 +78,11 @@ namespace Functions
                         success = true;
                     }
                 }
-                
+                else
+                {
+                    success = true; // enough fetched already, message can be deleted
+                }
+
                 if (success)
                 {
                     await blogToFetchQueueAdapter.DeleteMessage(message);
