@@ -16,7 +16,7 @@ namespace Functions
     public static class ProcessBlogToFetch
     {
         [FunctionName("ProcessBlogToFetch")]
-        public static async Task Run([TimerTrigger("0 09 * * * *")] TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 25 * * * *")] TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
