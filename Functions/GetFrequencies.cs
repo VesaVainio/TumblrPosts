@@ -48,10 +48,10 @@ namespace Functions
             }
 
             log.Info($"Inserting {digramFrequencies.Count} digrams");
-            tokenAllocationTableAdapter.InsertFrequencies("digram", digramFrequencies);
+            tokenAllocationTableAdapter.InsertFrequencies(TokenAllocationTableAdapter.PartitionDigram, digramFrequencies);
 
             log.Info($"Inserting {labelFrequencies.Count} labels");
-            tokenAllocationTableAdapter.InsertFrequencies("label", labelFrequencies);
+            tokenAllocationTableAdapter.InsertFrequencies(TokenAllocationTableAdapter.PartitionLabel, labelFrequencies);
 
             return req.CreateResponse(HttpStatusCode.OK, $"Processed {analyses.Count} analyses");
         }
