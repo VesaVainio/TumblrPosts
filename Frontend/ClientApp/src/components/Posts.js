@@ -48,12 +48,12 @@ export class Posts extends Component {
       <Masonry className="masonry" hasMore={this.state.hasMore} loadMore={this.loadMore} ref={(child) => { this.masonryGrid = child; }}
         sizes={[
           { columns: 1, gutter: 10 },
-          { mq: '540px', columns: 2, gutter: 10 },
-          { mq: '800px', columns: 3, gutter: 10 },
-          { mq: '1060px', columns: 4, gutter: 10 },
-          { mq: '1320px', columns: 5, gutter: 10 },
-          { mq: '1580px', columns: 6, gutter: 10 },
-          { mq: '1840px', columns: 7, gutter: 10 },
+          { mq: '550px', columns: 2, gutter: 10 },
+          { mq: '810px', columns: 3, gutter: 10 },
+          { mq: '1070px', columns: 4, gutter: 10 },
+          { mq: '1330px', columns: 5, gutter: 10 },
+          { mq: '1590px', columns: 6, gutter: 10 },
+          { mq: '1850px', columns: 7, gutter: 10 },
         ]}
       >
         {posts.map(post =>
@@ -78,7 +78,7 @@ export class Posts extends Component {
         : this.renderPostsTable(this.state.posts);
 
     return (
-      <div>
+      <div class='col'>
         <h1>{this.props.match.params.blogname}</h1>
         {contents}
       </div>
