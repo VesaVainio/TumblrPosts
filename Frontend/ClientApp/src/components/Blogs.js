@@ -12,7 +12,6 @@ class Blogs extends Component {
 
   constructor(props) {
     super(props);
-
   }
 
   componentWillMount() {
@@ -43,24 +42,24 @@ class Blogs extends Component {
     //var self = this;
     var rows = blogs.map(function(blog) {
         return (
-          <tr key={blog.Name}>
-            <td class='col'><a href={'/#/posts/' + blog.Name}>{blog.Name}</a></td>
-            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Title ? blog.Title : '\u00A0'}</a></td>
-            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Photo}</a></td>
-            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
-            <td class='col'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
+          <tr key={blog.Name} class='d-flex'>
+            <td class='col-10 col-md-4'><a href={'/#/posts/' + blog.Name}>{blog.Name}</a></td>
+            <td class='col-5 d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Title ? blog.Title : '\u00A0'}</a></td>
+            <td class='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Photo}</a></td>
+            <td class='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
+            <td class='col text-right'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
           </tr>
         );}.bind(this));
 
     return (
       <table className='table'>
         <thead>
-          <tr>
-            <th>Name</th>
-            <th class='d-none d-md-table-cell'>Title</th>
-            <th class='d-none d-md-table-cell'>Photos</th>
-            <th class='d-none d-md-table-cell'>Videos</th>
-            <th>Total</th>
+          <tr class='d-flex'>
+            <th class='col-10 col-md-4'>Name</th>
+            <th class='col-5 d-none d-md-table-cell'>Title</th>
+            <th class='col d-none d-md-table-cell'>Photos</th>
+            <th class='col d-none d-md-table-cell'>Videos</th>
+            <th class='col'>Total</th>
           </tr>
         </thead>
         <tbody className='blog-table'>
@@ -76,8 +75,8 @@ class Blogs extends Component {
         : this.renderBlogsTable(this.props.blogs);
 
     return (
-      <div>
-        <h1>Blogs available</h1>
+      <div class='col-12 col-lg-8'>
+        <h1>Blogs} available</h1>
         {contents}
       </div>
     );
