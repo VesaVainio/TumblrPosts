@@ -1,39 +1,35 @@
 import React, { Component } from 'react';
 import {withRouter} from 'react-router';
 import './Blogs.css';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as actions from '../actions/actions.js';
+import PropTypes from 'prop-types';
 
 class Blogs extends Component {
   displayName = Blogs.name
 
   constructor(props) {
     super(props);
-    this.state = { blogs: [], loading: true };
 
-    this.handleClick = this.handleClick.bind(this);
-
-    fetch(process.env.REACT_APP_API_ROOT + '/api/blogs')
-    .then(response => response.json())
-    .then(data => {
-        this.setState({ blogs: data, loading: false });
-    });
   }
 
-  handleClick(e) {
-      var blogname = e.target.parentElement.getAttribute('data-blog');
-      console.log(blogname);
-      this.props.history.push('/posts/' + blogname);
+  componentWillMount() {
+    if (!this.props.blogs || this.props.blogs.length === 0) {
+      this.props.actions.loadBlogList();
+    }
   }
 
   renderBlogsTable(blogs) {
     //var self = this;
     var rows = blogs.map(function(blog) {
         return (
-          <tr key={blog.Name} data-blog={blog.Name} onClick={this.handleClick}>
-          <td>{blog.Name}</td>
-          <td>{blog.Title}</td>
-          <td>{blog.Photo}</td>
-          <td>{blog.Video}</td>
-          <td>{blog.TotalPosts}</td>
+          <tr key={blog.Name}>
+            <td class='col'><a href={'/#/posts/' + blog.Name}>{blog.Name}</a></td>
+            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Title ? blog.Title : '\u00A0'}</a></td>
+            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Photo}</a></td>
+            <td class='d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
+            <td class='col'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
           </tr>
         );}.bind(this));
 
@@ -42,9 +38,9 @@ class Blogs extends Component {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Title</th>
-            <th>Photos</th>
-            <th>Videos</th>
+            <th class='d-none d-md-table-cell'>Title</th>
+            <th class='d-none d-md-table-cell'>Photos</th>
+            <th class='d-none d-md-table-cell'>Videos</th>
             <th>Total</th>
           </tr>
         </thead>
@@ -56,9 +52,9 @@ class Blogs extends Component {
   }
 
   render() {
-    let contents = this.state.loading
+    let contents = this.props.blogs.length === 0
       ? <p><em>Loading...</em></p>
-        : this.renderBlogsTable(this.state.blogs);
+        : this.renderBlogsTable(this.props.blogs);
 
     return (
       <div>
@@ -69,4 +65,29 @@ class Blogs extends Component {
   }
 }
 
-export default withRouter(Blogs);
+Blogs.propTypes = {
+  actions: PropTypes.object,
+  blogs: PropTypes.array
+};
+
+function mapStateToProps(state) {
+  if (state.blogs.blogs) {
+    return {
+      blogs: state.blogs.blogs // weird hack, todo to find why there is that extra level
+    };
+  }
+  return {
+    blogs: state.blogs
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: bindActionCreators(actions, dispatch)
+  };
+}
+
+export default withRouter(connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Blogs));

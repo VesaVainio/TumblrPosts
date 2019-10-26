@@ -1,0 +1,2 @@
+﻿export const BLOG_LIST_LOADED = "BLOG_LIST_LOADED";
+export const BLOG_LOADED = "BLOG_LOADED";

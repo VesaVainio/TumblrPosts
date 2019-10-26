@@ -48,10 +48,12 @@ export class Posts extends Component {
       <Masonry className="masonry" hasMore={this.state.hasMore} loadMore={this.loadMore} ref={(child) => { this.masonryGrid = child; }}
         sizes={[
           { columns: 1, gutter: 10 },
-          { mq: '820px', columns: 2, gutter: 10 },
-          { mq: '1145px', columns: 3, gutter: 10 },
-          { mq: '1470px', columns: 4, gutter: 10 },
-          { mq: '1795px', columns: 5, gutter: 10 },
+          { mq: '540px', columns: 2, gutter: 10 },
+          { mq: '800px', columns: 3, gutter: 10 },
+          { mq: '1060px', columns: 4, gutter: 10 },
+          { mq: '1320px', columns: 5, gutter: 10 },
+          { mq: '1580px', columns: 6, gutter: 10 },
+          { mq: '1840px', columns: 7, gutter: 10 },
         ]}
       >
         {posts.map(post =>
@@ -60,7 +62,7 @@ export class Posts extends Component {
               <span>No photo</span>
             }
             {(post.Photos && post.Photos.length !== 0) &&
-              <div className="photo-post"><a href={ "/post/" + post.Blogname + "/" + post.Id}> 
+              <div className="photo-post"><a href={ "/#/post/" + post.Blogname + "/" + post.Id}> 
                 <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
               </a></div>
             }

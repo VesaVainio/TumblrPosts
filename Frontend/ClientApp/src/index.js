@@ -1,19 +1,24 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/dist/css/bootstrap-theme.css';
-import './index.css';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import registerServiceWorker from './registerServiceWorker';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'jquery';
+import 'popper.js';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 
-const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
-const rootElement = document.getElementById('root');
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider as ReduxProvider } from "react-redux";
+import { HashRouter } from "react-router-dom";
+import configureStore from './store/configureStore';
+import App from "./App";
+
+const rootElement = document.getElementById("root");
+
+const store = configureStore();
 
 ReactDOM.render(
-  <BrowserRouter basename={baseUrl}>
-    <App />
-  </BrowserRouter>,
+  <HashRouter>
+    <ReduxProvider store={store}>
+      <App />
+    </ReduxProvider>
+  </HashRouter>,
   rootElement);
 
-registerServiceWorker();
