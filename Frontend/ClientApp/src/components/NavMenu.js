@@ -10,7 +10,7 @@ export class NavMenu extends Component {
   render() {
     return (
       <HashRouter>
-      <Navbar inverse fixedTop fluid collapseOnSelect>
+      <Navbar fixed='top' bg='light'>
         <Navbar.Brand>
           <Link to={'/'}>PicAI</Link>
         </Navbar.Brand>
