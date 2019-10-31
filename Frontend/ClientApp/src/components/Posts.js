@@ -58,12 +58,18 @@ export class Posts extends Component {
       >
         {posts.map(post =>
           <div key={post.Id}>
-            {(!post.Photos || post.Photos.length === 0) && 
+            {((!post.Photos || post.Photos.length === 0) && (!post.Videos || post.Videos.length === 0)) && 
               <span>No photo</span>
             }
             {(post.Photos && post.Photos.length !== 0) &&
               <div className="photo-post"><a href={ "/#/post/" + post.Blogname + "/" + post.Id}> 
-                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt=""/>
+                <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
+              </a></div>
+            }
+            {(post.Videos && post.Videos.length !== 0) &&
+              <div className="video-post"><a href={"/#/post/" + post.Blogname + "/" + post.Id}>
+                <img src={post.Videos[0].ThumbUrl} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
+                <img src={require('./images/video_play.png')} class="video-icon-overlay" alt="" />
               </a></div>
             }
           </div>

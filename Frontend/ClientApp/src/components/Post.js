@@ -17,7 +17,15 @@ export class Post extends Component {
 
   static renderPost(post) {
     return (
-        <img src={Utils.GetBigPhotoUrl(post)} alt=""/>
+      <div>
+      {post.Videos && post.Videos.length !== 0 ? (
+          <video controls src={post.Videos[0].Url}>
+            Video not supported.
+          </video>
+        ) : (
+          <img src = {Utils.GetBigPhotoUrl(post)} alt = "" />
+          )}
+      </div>
     );
   }
 
@@ -27,7 +35,7 @@ export class Post extends Component {
         : Post.renderPost(this.state.post);
 
     return (
-      <div>
+      <div class='col'>
         <h1>{this.props.match.params.blogname}</h1>
         {contents}
       </div>

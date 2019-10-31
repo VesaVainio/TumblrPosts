@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as actions from '../actions/actions.js';
 import PropTypes from 'prop-types';
-import $ from 'jquery';
 
 class Blogs extends Component {
   displayName = Blogs.name
@@ -18,24 +17,6 @@ class Blogs extends Component {
     if (!this.props.blogs || this.props.blogs.length === 0) {
       this.props.actions.loadBlogList();
     }
-  }
-
-  componentDidMount() {
-    $(function () {
-      var lastScrollTop = 0;
-      var $navbar = $('.navbar');
-
-      $(window).scroll(function (event) { // make NavBar hidden when scrolling down and visible when scrolling up
-        var st = $(this).scrollTop();
-
-        if (st > lastScrollTop) { // scroll down
-          $navbar.slideUp();
-        } else { // scroll up
-          $navbar.slideDown();
-        }
-        lastScrollTop = st;
-      });
-    });
   }
 
   renderBlogsTable(blogs) {

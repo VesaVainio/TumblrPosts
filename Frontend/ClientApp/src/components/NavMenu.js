@@ -1,11 +1,30 @@
 ﻿import React, { Component } from 'react';
 import { Link, HashRouter } from 'react-router-dom';
-import { Glyphicon, Nav, Navbar, NavItem } from 'react-bootstrap';
+import { Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import './NavMenu.css';
+import $ from 'jquery';
 
 export class NavMenu extends Component {
   displayName = NavMenu.name
+
+  componentDidMount() {
+    $(function () {
+      var lastScrollTop = 0;
+      var $navbar = $('.navbar');
+
+      $(window).scroll(function (event) { // make NavBar hidden when scrolling down and visible when scrolling up
+        var st = $(this).scrollTop();
+
+        if (st > lastScrollTop) { // scroll down
+          $navbar.slideUp();
+        } else { // scroll up
+          $navbar.slideDown();
+        }
+        lastScrollTop = st;
+      });
+    });
+  }
 
   render() {
     return (
