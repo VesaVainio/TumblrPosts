@@ -11,6 +11,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using QueueInterface.Messages;
 using TumblrPics.Model;
 
@@ -25,6 +26,16 @@ namespace QueueInterface
             string connectionString = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             cloudBlobClient = storageAccount.CreateCloudBlobClient();
+        }
+
+        public void FixServiceProperties()
+        {
+            ServiceProperties properties = cloudBlobClient.GetServiceProperties();
+            properties.DefaultServiceVersion = "2019-02-02";
+            cloudBlobClient.SetServiceProperties(properties);
+
+            properties = cloudBlobClient.GetServiceProperties();
+
         }
 
         public Dictionary<string, List<string>> GetBlobsByContainerMissingContentType()
