@@ -49,7 +49,7 @@ namespace Functions
                     }
                     else
                     {
-                        url = "https://api.tumblr.com/" + likes._links.Next.Href + "&api_key=" + apiKey;
+                        url = "https://api.tumblr.com" + likes._links.Next.Href + "&api_key=" + apiKey;
                     }
 
                     log.Info("Making request to: " + url);
