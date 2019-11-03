@@ -8,8 +8,7 @@ const Utils = {
         return url;
     },
 
-    GetBigPhotoUrl: function(post) {
-        let photo = post.Photos[0];
+    GetBigPhotoUrl: function (photo) {
         photo.Sizes.sort((a, b) => b.Nominal - a.Nominal);
         let size = photo.Sizes[0];
         let base = process.env.REACT_APP_BLOB_ROOT;

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+import Row from "react-bootstrap/Row";
 import Utils from "../Utils";
+import './Post.css';
 
 export class Post extends Component {
   displayName = Post.name
@@ -16,17 +18,28 @@ export class Post extends Component {
   }
 
   static renderPost(post) {
-    return (
-      <div>
-      {post.Videos && post.Videos.length !== 0 ? (
+    if (post.Videos && post.Videos.length !== 0) {
+      return (
+        <div>
           <video controls src={post.Videos[0].Url}>
             Video not supported.
           </video>
-        ) : (
-          <img src = {Utils.GetBigPhotoUrl(post)} alt = "" />
-          )}
-      </div>
-    );
+        </div>
+      );
+    } else if (post.Photos && post.Photos.length !== 0) {
+      var photos = post.Photos;
+      return (
+        <div>
+        {photos.map(photo =>
+          <Row>
+            <div class="col photorow">
+              <img src={Utils.GetBigPhotoUrl(photo)} alt="" />
+            </div>
+          </Row>
+        )}
+        </div>
+      );
+    }
   }
 
   render() {
@@ -35,9 +48,13 @@ export class Post extends Component {
         : Post.renderPost(this.state.post);
 
     return (
-      <div class='col'>
-        <h1>{this.props.match.params.blogname}</h1>
-        {contents}
+      <div>
+      <Row>
+        <div class='col'>
+          <h1>{this.props.match.params.blogname}</h1>
+        </div>
+      </Row>
+      {contents}
       </div>
     );
   }

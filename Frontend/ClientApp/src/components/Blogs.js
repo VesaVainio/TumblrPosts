@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Row from "react-bootstrap/Row";
 import {withRouter} from 'react-router';
 import './Blogs.css';
 import { connect } from 'react-redux';
@@ -56,10 +57,12 @@ class Blogs extends Component {
         : this.renderBlogsTable(this.props.blogs);
 
     return (
-      <div class='col-12 col-lg-8'>
-        <h1>Blogs} available</h1>
-        {contents}
-      </div>
+      <Row>
+        <div class='col-12 col-lg-8'>
+          <h1>Blogs available</h1>
+          {contents}
+        </div>
+      </Row>
     );
   }
 }

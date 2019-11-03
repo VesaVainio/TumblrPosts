@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Row from "react-bootstrap/Row";
 import Masonry from 'react-masonry-infinite';
 import Utils from "../Utils";
 import './Posts.css';
@@ -84,10 +85,12 @@ export class Posts extends Component {
         : this.renderPostsTable(this.state.posts);
 
     return (
-      <div class='col'>
-        <h1>{this.props.match.params.blogname}</h1>
-        {contents}
-      </div>
+      <Row>
+        <div class='col'>
+          <h1>{this.props.match.params.blogname}</h1>
+          {contents}
+        </div>
+      </Row>
     );
   }
 }
