@@ -17,13 +17,21 @@ export class Post extends Component {
     });
   }
 
+  static createMarkup(post) {
+    return {__html: post.Body};
+  }
+
   static renderPost(post) {
     if (post.Videos && post.Videos.length !== 0) {
       return (
         <div>
-          <video controls src={post.Videos[0].Url}>
-            Video not supported.
-          </video>
+          {post.Videos.map(video =>
+            <Row>
+              <video controls src={video.Url}>
+                Video not supported.
+              </video>
+            </Row>
+          )}
         </div>
       );
     } else if (post.Photos && post.Photos.length !== 0) {
@@ -39,6 +47,12 @@ export class Post extends Component {
         )}
         </div>
       );
+    } else if (post.Body) {
+      return (
+        <Row>
+          <div dangerouslySetInnerHTML={{__html: post.Body}} />
+        </Row>
+      )
     }
   }
 
