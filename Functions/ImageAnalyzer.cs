@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
+using Model;
 using Model.Canonical;
 using Model.Google;
 using Model.Microsoft;
@@ -67,7 +68,7 @@ namespace Functions
                     }
 
                     imageAnalysisTableAdapter.InsertImageAnalysis(imageAnalysisEntity, photoToAnalyze.Url);
-                    imageAnalysisTableAdapter.InsertBlogImageAnalysis(SanitizeSourceBlog(photoToAnalyze.Blog), photoToAnalyze.Url);
+                    imageAnalysisTableAdapter.InsertBlogImageAnalysis(SanityHelper.SanitizeSourceBlog(photoToAnalyze.Blog), photoToAnalyze.Url);
                     log.Info($"All analyses for {photoToAnalyze.Url} saved in {stopwatch.ElapsedMilliseconds}ms");
                     return null;
                 }
@@ -179,11 +180,6 @@ namespace Functions
 
             log.Info($"MS Analysis for {photoToAnalyze.Url} got in {stopwatch.ElapsedMilliseconds}ms");
             return msAnalysis;
-        }
-
-        private static string SanitizeSourceBlog(string sourceBlog)
-        {
-            return sourceBlog?.Replace(' ', '_').Replace('/', '_').Replace("\\", "_").Replace('?', '_').Replace('#', '_');
         }
     }
 }

@@ -92,6 +92,7 @@
     <Compile Include="Microsoft\Occlusion.cs" />
     <Compile Include="Microsoft\Rectangle.cs" />
     <Compile Include="Microsoft\Tag.cs" />
+    <Compile Include="SanityHelper.cs" />
     <Compile Include="Site\BlogInfo.cs" />
     <Compile Include="Site\Photo.cs" />
     <Compile Include="Site\PhotoSize.cs" />

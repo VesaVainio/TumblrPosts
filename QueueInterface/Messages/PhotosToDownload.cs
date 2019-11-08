@@ -11,6 +11,7 @@ namespace QueueInterface.Messages
         public string SourceBlog { get; set; }
         public string PostType { get; set; } // needed to be able to insert ReversePostEntity
         public string Body { get; set; } // needed to be able to insert ReversePostEntity
+        public string Title { get; set; } // needed to be able to insert ReversePostEntity
 
         public PhotosToDownload() { }
 
@@ -21,6 +22,7 @@ namespace QueueInterface.Messages
             SourceBlog = string.IsNullOrEmpty(tumblrPost.Source_title) ? null : tumblrPost.Source_title;
             PostType = tumblrPost.Type.ToString();
             Body = tumblrPost.Body;
+            Title = tumblrPost.Title;
         }
     }
 }

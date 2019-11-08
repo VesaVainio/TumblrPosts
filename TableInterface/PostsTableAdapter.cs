@@ -105,28 +105,30 @@ namespace TableInterface
             return result.Select(x => x.PartitionKey).Distinct().ToList();
         }
 
-        public void MarkPhotosAsDownloaded(string blogName, string postId, List<Photo> sitePhotos)
+        public void MarkPhotosAsDownloaded(string blogName, string postId, List<Photo> sitePhotos, string modifiedBody)
         {
             PhotoDownloadCompleteEntity entity = new PhotoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
                 PicsDownloadLevel = Constants.MaxPicsDownloadLevel,
-                PhotoBlobUrls = JsonConvert.SerializeObject(sitePhotos)
+                PhotoBlobUrls = JsonConvert.SerializeObject(sitePhotos),
+                ModifiedBody = modifiedBody
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
             postsTable.Execute(insertOrMergeOperation);
         }
 
-        public void MarkVideosAsDownloaded(string blogName, string postId, Video[] videos)
+        public void MarkVideosAsDownloaded(string blogName, string postId, Video[] videos, string modifiedBody)
         {
             VideoDownloadCompleteEntity entity = new VideoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
                 VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
-                VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings)
+                VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings),
+                ModifiedBody = modifiedBody
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);

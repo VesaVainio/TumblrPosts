@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Model;
 using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
@@ -81,7 +82,7 @@ namespace Functions
             }
 
             blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, 
-                postToGetQueueAdapter, mediaToDownloadQueueAdapter, log);
+                postsTableAdapter, mediaToDownloadQueueAdapter, photoIndexTableAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
         }
@@ -165,12 +166,14 @@ namespace Functions
                 SourceBlog = string.IsNullOrEmpty(postEntity.SourceTitle) ? null : postEntity.SourceTitle,
                 PostType = postEntity.Type,
                 Body = postEntity.Body,
+                Title = postEntity.Title,
                 Photos = photos
             });
         }
 
         private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
-            ReversePostsTableAdapter reversePostsTableAdapter, PostToGetQueueAdapter postToGetQueueAdapter, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
+            ReversePostsTableAdapter reversePostsTableAdapter, PostsTableAdapter postsTableAdapter,
+            MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, PhotoIndexTableAdapter photoIndexTableAdapter, TraceWriter log)
         {
             int index = 0;
 
@@ -178,14 +181,18 @@ namespace Functions
 
             foreach (PostEntity entity in postEntities)
             {
-                if (entity.Type.Equals("Video", StringComparison.OrdinalIgnoreCase) && !entity.PostNotFound && 
-                    (entity.VideoType.Equals("tumblr", StringComparison.OrdinalIgnoreCase) || entity.VideoType.Equals("instagram", StringComparison.OrdinalIgnoreCase)) &&
-                    (!entity.VideosDownloadLevel.HasValue || entity.VideosDownloadLevel.Value < Constants.MaxVideosDownloadLevel))
+                if (string.IsNullOrEmpty(entity.ModifiedBody) && !string.IsNullOrEmpty(entity.Body))
                 {
-                    postToGetQueueAdapter.Send(new PostToGet { Blogname = entity.PartitionKey, Id = entity.RowKey });
-                }
+                    string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
 
-                ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.Body);
+                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, log);
+                    entity.ModifiedBody = modifiedBody;
+
+                    postsTableAdapter.InsertPost(entity);
+                    log.Info($"ModifiedBody updated on post {entity.PartitionKey}/{entity.RowKey}");
+                }
+                
+                ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.ModifiedBody, entity.Title);
                 if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
@@ -204,19 +211,6 @@ namespace Functions
                         reversePostsTableAdapter.InsertBatch(reverseEntities);
                         reverseEntities.Clear();
                         log.Info("Inserted " + index + " reverse posts for " + entity.PartitionKey);
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(entity.PhotosJson))
-                    {
-                        // this might happen because of posts being initially processed by logic that didn't have PhotoIndex like it is now
-                        SendPhotosToDownload(mediaToDownloadQueueAdapter, entity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(entity.PhotosJson));
-                        log.Warning($"Photos from post {entity.PartitionKey}/{entity.RowKey} sent to be downloaded again");
-                    }
-                    else
-                    {
-                        log.Warning($"Post {entity.PartitionKey}/{entity.RowKey} skipped as it has no Photos, Videos or Body");
                     }
                 }
             }

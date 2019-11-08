@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Model;
 using Model.Site;
 using Newtonsoft.Json;
 using QueueInterface;
@@ -50,6 +51,11 @@ namespace Functions
                 string id = photosToDownload.IndexInfo.PostId;
                 DateTime date = photosToDownload.IndexInfo.PostDate;
 
+                string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog)
+                    ? photosToDownload.IndexInfo.BlogName
+                    : photosToDownload.SourceBlog;
+                sourceBlog = SanityHelper.SanitizeSourceBlog(sourceBlog);
+
                 using (HttpClient httpClient = new HttpClient())
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
@@ -73,10 +79,6 @@ namespace Functions
                                         Sizes = new PhotoSize[0]
                                     };
 
-                                string sourceBlog = string.IsNullOrEmpty(photosToDownload.SourceBlog)
-                                    ? photosToDownload.IndexInfo.BlogName
-                                    : photosToDownload.SourceBlog;
-                                sourceBlog = SanitizeSourceBlog(sourceBlog);
                                 PhotoUrlIndexEntity urlIndexEntity = photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, altSize.Url);
                                 if (urlIndexEntity != null) // photo already downloaded
                                 {
@@ -92,7 +94,7 @@ namespace Functions
 
                                         AddSizeToSitePhoto(sitePhoto, blobUri.ToString(), altSize);
 
-                                        photoIndexTableAdapter.InsertPhotoIndex(blogname, id, date, SanitizeSourceBlog(photosToDownload.SourceBlog),
+                                        photoIndexTableAdapter.InsertPhotoIndex(blogname, id, date, SanityHelper.SanitizeSourceBlog(photosToDownload.SourceBlog),
                                             blobUri.ToString(), urlHelper.Name, urlHelper.Size,
                                             altSize.Width, altSize.Height, altSize.Url);
                                         isOriginal = false;
@@ -106,11 +108,12 @@ namespace Functions
                     }
                 }
 
-                postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos);
+                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, log);
+
+                postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos, modifiedBody);
 
                 ReversePostEntity reversePost = new ReversePostEntity(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId,
-                    photosToDownload.PostType,
-                    photosToDownload.IndexInfo.PostDate, photosToDownload.Body)
+                    photosToDownload.PostType, photosToDownload.IndexInfo.PostDate, modifiedBody, photosToDownload.Title)
                 {
                     Photos = JsonConvert.SerializeObject(sitePhotos)
                 };
@@ -120,11 +123,6 @@ namespace Functions
             {
                 log.Error("Error in ProcessPhotosToDownload", ex);
             }
-        }
-
-        private static string SanitizeSourceBlog(string sourceBlog)
-        {
-            return sourceBlog?.Replace(' ', '_').Replace('/', '_').Replace("\\", "_").Replace('?', '_').Replace('#', '_');
         }
 
         private static void AddSizeToSitePhoto(Photo sitePhoto, string blobUrl, AltSize altSize)

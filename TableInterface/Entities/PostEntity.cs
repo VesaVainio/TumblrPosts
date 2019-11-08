@@ -23,6 +23,8 @@ namespace TableInterface.Entities
 
         public string Title { get; set; }
         public string Body { get; set; }
+        public string ModifiedBody { get; set; } // same as original body, but with URLs mapped as Blob urls
+
         public string Format { get; set; }
 
         public string Caption { get; set; }

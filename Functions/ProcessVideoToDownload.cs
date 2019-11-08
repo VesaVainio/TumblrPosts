@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Model;
 using QueueInterface;
 using TableInterface;
 using TableInterface.Entities;
@@ -38,6 +39,11 @@ namespace Functions
 
             ReversePostsTableAdapter reversePostsTableAdapter = new ReversePostsTableAdapter();
             reversePostsTableAdapter.Init(log);
+
+            string sourceBlog = string.IsNullOrEmpty(videosToDownload.SourceBlog)
+                ? videosToDownload.IndexInfo.BlogName
+                : videosToDownload.SourceBlog;
+            sourceBlog = SanityHelper.SanitizeSourceBlog(sourceBlog);
 
             using (HttpClient httpClient = new HttpClient())
             {
@@ -75,9 +81,18 @@ namespace Functions
 
                 if (videos.Count > 0)
                 {
-                    postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray());
+                    string modifiedBody = null;
+                    if (!string.IsNullOrEmpty(videosToDownload.Body))
+                    {
+                        PhotoIndexTableAdapter photoIndexTableAdapter = new PhotoIndexTableAdapter();
+                        photoIndexTableAdapter.Init();
 
-                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date, videosToDownload.Body)
+                        modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, videosToDownload.Body, photoIndexTableAdapter, log);
+                    }
+
+                    postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray(), modifiedBody);
+
+                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date, videosToDownload.Body, modifiedBody)
                     {
                         Videos = JsonConvert.SerializeObject(videos)
                     };
