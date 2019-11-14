@@ -31,6 +31,9 @@ namespace TableInterface.Entities
         public int? Width { get; set; }
         public int? Heigth { get; set; }
 
+        public bool? ShouldOpenInLegacy { get; set; } // NPF format field
+        public string Content { get; set; } // NPF format field
+
         public string PhotoOriginalUrls { get; set; }
         public string PhotosJson { get; set; }
         public string PhotoBlobUrls { get; set; } // separated by ;, only the originals
@@ -62,7 +65,10 @@ namespace TableInterface.Entities
             SourceUrl = string.IsNullOrEmpty(tumblrPost.Source_url) ? null : tumblrPost.Source_url;
             NoteCount = tumblrPost.Note_count;
             ReblogKey = string.IsNullOrEmpty(tumblrPost.Reblog_key) ? null : tumblrPost.Reblog_key;
-            Trail = tumblrPost.Trail == null || tumblrPost.Trail.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Trail); 
+            Trail = tumblrPost.Trail == null || tumblrPost.Trail.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Trail);
+
+            ShouldOpenInLegacy = tumblrPost.ShouldOpenInLegacy;
+            Content = tumblrPost.Content == null || tumblrPost.Content.Length == 0 ? null : JsonConvert.SerializeObject(tumblrPost.Content); 
 
             Title = tumblrPost.Title;
             Format = tumblrPost.Format;

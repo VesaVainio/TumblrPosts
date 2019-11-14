@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using HtmlAgilityPack;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Site;
 using Newtonsoft.Json;
 using TableInterface;
 using TableInterface.Entities;
@@ -12,7 +15,7 @@ namespace Functions
 {
     public static class BodyUrlModifier
     {
-        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, TraceWriter log)
+        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, List<Photo> sitePhotos, TraceWriter log)
         {
             if (string.IsNullOrEmpty(body))
             {
@@ -28,7 +31,7 @@ namespace Functions
             {
                 string url = imgNode.Attributes["src"].Value;
 
-                string mappedUrl = TryToGetMappedUrl(sourceBlog, url, photoIndexTableAdapter);
+                string mappedUrl = TryToGetMappedUrl(url, sitePhotos, sourceBlog, photoIndexTableAdapter);
                 if (mappedUrl != null)
                 {
                     imgNode.Attributes["src"].Value = mappedUrl;
@@ -41,17 +44,39 @@ namespace Functions
             return result;
         }
 
-        private static string TryToGetMappedUrl(string sourceBlog, string origUrl, PhotoIndexTableAdapter photoIndexTableAdapter)
+        private static string TryToGetMappedUrl(string origUrl, List<Photo> sitePhotos, string sourceBlog, PhotoIndexTableAdapter photoIndexTableAdapter)
         {
-            PhotoUrlIndexEntity photoIndex = photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, origUrl);
-            if (photoIndex != null)
-            {
-                return photoIndex.BlobUrl;
-            }
-
             PhotoUrlHelper helper = PhotoUrlHelper.ParseTumblr(origUrl);
             if (helper != null)
             {
+                if (sitePhotos != null)
+                {
+                    foreach (Photo sitePhoto in sitePhotos)
+                    {
+                        int underscoreIndex = sitePhoto.Name.IndexOf("_", StringComparison.Ordinal);
+                        if (underscoreIndex >= 0)
+                        {
+                            string containerPart = sitePhoto.Name.Substring(0, underscoreIndex);
+                            string namePart = sitePhoto.Name.Substring(underscoreIndex + 1, sitePhoto.Name.Length - underscoreIndex - 1);
+
+                            if (namePart.Equals(helper.Name) && containerPart.Equals(helper.Container))
+                            {
+                                PhotoSize photoSize = sitePhoto.Sizes.OrderBy(x => x.Nominal).Last();
+                                string blobBaseUrl = ConfigurationManager.AppSettings["BlobBaseUrl"];
+                                string newUrl = blobBaseUrl + "/" + photoSize.Container + "/" + sitePhoto.Name + "_" + photoSize.Nominal + "." +
+                                                sitePhoto.Extension;
+                                return newUrl;
+                            }
+                        }
+                    }
+                }
+
+                PhotoUrlIndexEntity photoIndex = photoIndexTableAdapter.GetPhotoUrlndex(sourceBlog, origUrl);
+                if (photoIndex != null)
+                {
+                    return photoIndex.BlobUrl;
+                }
+
                 string url = "https://" + helper.Server + ".media.tumblr.com/" + (helper.Container != null ? helper.Container + "/" : "") + "tumblr_" +
                              helper.Name + "_" + 640 + "." + helper.Extension;
 

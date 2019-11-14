@@ -120,15 +120,14 @@ namespace TableInterface
             postsTable.Execute(insertOrMergeOperation);
         }
 
-        public void MarkVideosAsDownloaded(string blogName, string postId, Video[] videos, string modifiedBody)
+        public void MarkVideosAsDownloaded(string blogName, string postId, Video[] videos)
         {
             VideoDownloadCompleteEntity entity = new VideoDownloadCompleteEntity
             {
                 PartitionKey = blogName,
                 RowKey = postId,
                 VideosDownloadLevel = Constants.MaxVideosDownloadLevel,
-                VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings),
-                ModifiedBody = modifiedBody
+                VideoBlobUrls = JsonConvert.SerializeObject(videos, JsonSerializerSettings)
             };
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);

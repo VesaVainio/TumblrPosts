@@ -1,4 +1,5 @@
 ﻿using System;
+using Model.Tumblr;
 
 namespace TumblrPics.Model.Tumblr
 {
@@ -20,6 +21,10 @@ namespace TumblrPics.Model.Tumblr
         public string Reblog_key { get; set; }
         //public Reblog Reblog { get; set; }
         public Trail[] Trail { get; set; }
+
+        public bool ShouldOpenInLegacy { get; set; }
+        public Content[] Content { get; set; }
+
 
         public string Title { get; set; }
         public string Body { get; set; }

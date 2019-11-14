@@ -10,6 +10,7 @@ namespace TumblrPics.Model.Tumblr
         Video,
         Audio,
         Photo,
-        Chat
+        Chat,
+        Blocks
     }
 }

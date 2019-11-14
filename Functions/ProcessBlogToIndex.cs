@@ -181,24 +181,25 @@ namespace Functions
 
             foreach (PostEntity entity in postEntities)
             {
-                if (string.IsNullOrEmpty(entity.ModifiedBody) && !string.IsNullOrEmpty(entity.Body))
-                {
-                    string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
-
-                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, log);
-                    entity.ModifiedBody = modifiedBody;
-
-                    postsTableAdapter.InsertPost(entity);
-                    log.Info($"ModifiedBody updated on post {entity.PartitionKey}/{entity.RowKey}");
-                }
-                
                 ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.ModifiedBody, entity.Title);
                 if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
-                } else if (!string.IsNullOrEmpty(entity.VideoBlobUrls) && entity.VideoBlobUrls.StartsWith("[{"))
+                }
+                else if (!string.IsNullOrEmpty(entity.VideoBlobUrls) && entity.VideoBlobUrls.StartsWith("[{"))
                 {
                     reversePost.Videos = entity.VideoBlobUrls;
+                }
+
+                if (/*string.IsNullOrEmpty(entity.ModifiedBody) && */!string.IsNullOrEmpty(entity.Body))
+                {
+                    string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
+
+                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, photos, log);
+                    entity.ModifiedBody = modifiedBody;
+
+                    postsTableAdapter.InsertPost(entity);
+                    log.Info($"ModifiedBody updated on post {entity.PartitionKey}/{entity.RowKey}");
                 }
 
                 if (!string.IsNullOrEmpty(reversePost.Photos) || !string.IsNullOrEmpty(reversePost.Videos) || !string.IsNullOrEmpty(reversePost.Body))

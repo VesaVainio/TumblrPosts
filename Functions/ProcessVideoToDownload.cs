@@ -81,18 +81,9 @@ namespace Functions
 
                 if (videos.Count > 0)
                 {
-                    string modifiedBody = null;
-                    if (!string.IsNullOrEmpty(videosToDownload.Body))
-                    {
-                        PhotoIndexTableAdapter photoIndexTableAdapter = new PhotoIndexTableAdapter();
-                        photoIndexTableAdapter.Init();
+                    postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray());
 
-                        modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, videosToDownload.Body, photoIndexTableAdapter, log);
-                    }
-
-                    postsTableAdapter.MarkVideosAsDownloaded(videosToDownload.IndexInfo.BlogName, videosToDownload.IndexInfo.PostId, videos.ToArray(), modifiedBody);
-
-                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date, videosToDownload.Body, modifiedBody)
+                    ReversePostEntity reversePost = new ReversePostEntity(blogname, id, videosToDownload.PostType, date, videosToDownload.Body, videosToDownload.Title)
                     {
                         Videos = JsonConvert.SerializeObject(videos)
                     };

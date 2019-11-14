@@ -1,13 +1,14 @@
-﻿using HtmlAgilityPack;
-using Microsoft.Azure.WebJobs.Host;
-using QueueInterface;
-using QueueInterface.Messages;
-using QueueInterface.Messages.Dto;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
+using Microsoft.Azure.WebJobs.Host;
+using Model.Tumblr;
+using QueueInterface;
+using QueueInterface.Messages;
+using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
@@ -17,8 +18,10 @@ namespace Functions
 {
     public class PostProcessor
     {
-        private PostsTableAdapter postsTableAdapter;
+        public static readonly int[] DownloadSizes = { 1280, 640, 250 };
         private LikeIndexTableAdapter likeIndexTableAdapter;
+
+        private PostsTableAdapter postsTableAdapter;
         private MediaToDownloadQueueAdapter queueAdapter;
 
         public void Init(TraceWriter log)
@@ -59,7 +62,8 @@ namespace Functions
 
                 if (postEntityFromTumblr.PhotosJson != null)
                 {
-                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null ||
+                        postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
                         photosToDownloadMessage = new PhotosToDownload(post)
                         {
@@ -73,6 +77,34 @@ namespace Functions
                 }
 
                 List<VideoUrls> videoUrlsList = new List<VideoUrls>();
+
+                if (post.Content != null && post.Content.Length > 0)
+                {
+                    List<Photo> photos = new List<Photo>(post.Content.Length);
+
+                    foreach (Content content in post.Content)
+                    {
+                        if (content.Type == "image")
+                        {
+                            Photo photo = ConvertContentToPhoto(content);
+                            photos.Add(photo);
+                        }
+                        else if (content.Type == "video" && content.Url != null && content.Poster != null)
+                        {
+                            VideoUrls videoUrls = new VideoUrls
+                            {
+                                VideoUrl = content.Url,
+                                VideoThumbUrl = content.Poster.OrderBy(x => x.Width).LastOrDefault()?.Url
+                            };
+                            videoUrlsList.Add(videoUrls);
+                        }
+                    }
+
+                    if (photos.Count > 0)
+                    {
+                        UpdatePhotosToDownloadMessage(ref photosToDownloadMessage, post, photos);
+                    }
+                }
 
                 if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel == null ||
                     postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
@@ -112,27 +144,19 @@ namespace Functions
                 {
                     HtmlDocument htmlDoc = new HtmlDocument();
                     htmlDoc.LoadHtml(post.Body);
-                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null || postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.PicsDownloadLevel == null ||
+                        postEntityInTable.PicsDownloadLevel < Constants.MaxPicsDownloadLevel)
                     {
                         List<Photo> photos = ExctractPhotosFromHtml(htmlDoc);
 
                         if (photos.Count > 0)
                         {
-                            if (photosToDownloadMessage == null)
-                            {
-                                photosToDownloadMessage = new PhotosToDownload(post)
-                                {
-                                    Photos = photos.ToArray()
-                                };
-                            }
-                            else
-                            {
-                                photosToDownloadMessage.Photos = photosToDownloadMessage.Photos.Concat(photos).ToArray();
-                            }
+                            photosToDownloadMessage = UpdatePhotosToDownloadMessage(ref photosToDownloadMessage, post, photos);
                         }
                     }
 
-                    if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel == null || postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
+                    if (postEntityInTable == null || postEntityInTable.VideosDownloadLevel == null ||
+                        postEntityInTable.VideosDownloadLevel < Constants.MaxVideosDownloadLevel)
                     {
                         List<VideoUrls> videoUrlsListFromBody = GetVideoUrls(htmlDoc, log);
                         videoUrlsList.AddRange(videoUrlsListFromBody);
@@ -156,6 +180,34 @@ namespace Functions
                     log.Info("VideosToDownload message published");
                 }
             }
+        }
+
+        private static Photo ConvertContentToPhoto(Content content)
+        {
+            return new Photo
+            {
+                Alt_sizes = (from media in content.Media
+                    let helper = PhotoUrlHelper.ParseTumblr(media.Url)
+                    where DownloadSizes.Contains(helper.Size) && (helper.VSize == null || helper.VSize > helper.Size)
+                    select new AltSize { Url = media.Url, Width = media.Width, Height = media.Height }).ToArray()
+            };
+        }
+
+        private static PhotosToDownload UpdatePhotosToDownloadMessage(ref PhotosToDownload photosToDownloadMessage, Post post, List<Photo> photos)
+        {
+            if (photosToDownloadMessage == null)
+            {
+                photosToDownloadMessage = new PhotosToDownload(post)
+                {
+                    Photos = photos.ToArray()
+                };
+            }
+            else
+            {
+                photosToDownloadMessage.Photos = photosToDownloadMessage.Photos.Concat(photos).ToArray();
+            }
+
+            return photosToDownloadMessage;
         }
 
         public static List<Photo> ExctractPhotosFromHtml(HtmlDocument htmlDoc)
@@ -271,15 +323,15 @@ namespace Functions
                 return null;
             }
 
-            int[] sizes = { 1280, 640, 250 };
             Photo photo = new Photo();
             List<AltSize> altSizes = new List<AltSize>();
 
-            foreach (int size in sizes)
+            foreach (int size in DownloadSizes)
             {
                 AltSize altSize = new AltSize
                 {
-                    Url = "https://" + helper.Server + ".media.tumblr.com/" + (helper.Container != null ? helper.Container + "/" : "") + "tumblr_" + helper.Name + "_" + size + "." + helper.Extension,
+                    Url = "https://" + helper.Server + ".media.tumblr.com/" + (helper.Container != null ? helper.Container + "/" : "") + "tumblr_" +
+                          helper.Name + "_" + size + "." + helper.Extension,
                     Width = 0,
                     Height = 0
                 };

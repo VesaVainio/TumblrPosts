@@ -100,7 +100,11 @@
     <Compile Include="Site\Video.cs" />
     <Compile Include="StringTokenizer.cs" />
     <Compile Include="Tumblr\BlogInfo.cs" />
+    <Compile Include="Tumblr\Content.cs" />
+    <Compile Include="Tumblr\Formatting.cs" />
+    <Compile Include="Tumblr\Media.cs" />
     <Compile Include="Tumblr\Player.cs" />
+    <Compile Include="Tumblr\Poster.cs" />
     <Compile Include="Tumblr\TrailPost.cs" />
     <Compile Include="Tumblr\TrailBlog.cs" />
     <Compile Include="Tumblr\Trail.cs" />

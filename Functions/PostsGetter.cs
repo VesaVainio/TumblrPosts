@@ -16,7 +16,7 @@ namespace Functions
     public class PostsGetter
     {
         public async Task<GetPostsResult> GetPosts(TraceWriter log, string blogname, int startingOffset = 0, int maxOffset = Constants.MaxPostsToFetch,
-            long timeoutSeconds = 270)
+            long timeoutSeconds = 270, bool updateNpf = false)
         {
             PostsToProcessQueueAdapter postsToProcessQueueAdapter = new PostsToProcessQueueAdapter();
             postsToProcessQueueAdapter.Init(log);
@@ -38,7 +38,7 @@ namespace Functions
 
                 do
                 {
-                    string url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?offset=" + offset + "&api_key=" + apiKey;
+                    string url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?npf=true&offset=" + offset + "&api_key=" + apiKey;
                     log.Info("Making request to: " + url);
                     HttpResponseMessage response = await httpClient.GetAsync(url);
                     if (response.IsSuccessStatusCode)
@@ -54,6 +54,12 @@ namespace Functions
                         if (blogPosts.Posts != null && blogPosts.Posts.Count > 0)
                         {
                             postsToProcessQueueAdapter.SendPostsToProcess(blogPosts.Posts);
+                        }
+
+                        if (updateNpf && blogPosts.Posts.Any(x => x.ShouldOpenInLegacy))
+                        {
+                            success = false;
+                            break;
                         }
                     }
                     else
@@ -72,7 +78,7 @@ namespace Functions
 
             BlogEntity blogEntity = new BlogEntity(blog)
             {
-                FetchedUntilOffset = offset,
+                FetchedUntilOffset = updateNpf ? (int?)null : offset,
                 LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow)
             };
             blogInfoTableAdapter.InsertBlog(blogEntity);
@@ -112,7 +118,7 @@ namespace Functions
                     if (linkUrl == null)
                     {
                         // start from newest posts
-                        url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?before=" + FunctionUtilities.GetUnixTime(DateTime.UtcNow) + "&api_key=" +
+                        url = "https://api.tumblr.com/v2/blog/" + blogname + "/posts?npf=true&before=" + FunctionUtilities.GetUnixTime(DateTime.UtcNow) + "&api_key=" +
                               apiKey;
                     }
                     else

@@ -24,11 +24,7 @@ namespace PublicAPI
 
             ReversePostEntity entity = reversePostsTableAdapter.GetPost(blogname, id);
 
-            string decodedOnce = JsonConvert.DeserializeObject<string>(entity.Body);
-
             Model.Site.Post post = entity != null ? entity.GetSitePost() : null;
-
-            post.Body = decodedOnce;
 
             string postJson = JsonConvert.SerializeObject(post, JsonSerializerSettings);
 

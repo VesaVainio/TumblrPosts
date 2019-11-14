@@ -32,7 +32,7 @@ namespace Functions
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            bool success = false; // basically means that can the message be deleted, or if it needs to be left in queue to be resumed later
+            bool success; // basically means that can the message be deleted, or if it needs to be left in queue to be resumed later
 
             do
             {
@@ -54,7 +54,7 @@ namespace Functions
 
                 success = false;
 
-                GetPostsResult result;
+                GetPostsResult result = null;
                 if (blogToFetch.NewerThan.HasValue)
                 {
                     result = await postsGetter.GetNewerPosts(log, blogToFetch.Blogname, blogToFetch.NewerThan.Value, timeoutLeft);
@@ -65,14 +65,19 @@ namespace Functions
                 }
 
                 int offset = 0;
-                if (blogEntity != null && blogEntity.FetchedUntilOffset.HasValue)
+                if (blogEntity?.FetchedUntilOffset != null && !blogToFetch.UpdateNpf)
                 {
                     offset = blogEntity.FetchedUntilOffset.Value;
                 }
 
-                if (!blogEntity.FetchedUntilOffset.HasValue || blogEntity.FetchedUntilOffset.Value < Constants.MaxPostsToFetch)
+                if (result != null)
                 {
-                    result = await postsGetter.GetPosts(log, blogToFetch.Blogname, offset, timeoutSeconds: timeoutLeft);
+                    offset += (int)result.TotalReceived;
+                }
+
+                if (blogEntity != null && (!blogEntity.FetchedUntilOffset.HasValue || blogEntity.FetchedUntilOffset.Value < Constants.MaxPostsToFetch))
+                {
+                    result = await postsGetter.GetPosts(log, blogToFetch.Blogname, offset, timeoutSeconds: timeoutLeft, updateNpf: blogToFetch.UpdateNpf);
                     if (result.Success)
                     {
                         success = true;

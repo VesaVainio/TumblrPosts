@@ -108,7 +108,7 @@ namespace Functions
                     }
                 }
 
-                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, log);
+                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, sitePhotos, log);
 
                 postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos, modifiedBody);
 
