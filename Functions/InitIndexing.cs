@@ -1,11 +1,15 @@
+using System;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
 using QueueInterface.Messages;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using Microsoft.WindowsAzure.Storage.File.Protocol;
 using TableInterface;
 
 namespace Functions
@@ -24,6 +28,10 @@ namespace Functions
             blogToIndexQueueAdapter.Init();
 
             List<string> partitions = postsTableAdapter.GetAllPartitions();
+
+            //Random random = new Random();
+            //partitions.Shuffle(random);
+            //partitions = partitions.Take(10).ToList();
 
             foreach (string blogname in partitions)
             {

@@ -29,6 +29,8 @@ namespace Functions
         {
             Startup.Init();
 
+            string requestUrl = null;
+
             try
             {
                 PhotosToDownload photosToDownload = JsonConvert.DeserializeObject<PhotosToDownload>(myQueueItem);
@@ -87,6 +89,7 @@ namespace Functions
                                 }
                                 else // photo not downloaded
                                 {
+                                    requestUrl = altSize.Url;
                                     byte[] photoBytes = await httpClient.GetByteArrayAsync(altSize.Url);
                                     if (photoBytes.Length > 0)
                                     {
@@ -121,7 +124,14 @@ namespace Functions
             }
             catch (Exception ex)
             {
-                log.Error("Error in ProcessPhotosToDownload", ex);
+                if (ex is HttpRequestException httpRequestException && httpRequestException.Message.Contains("403") && httpRequestException.Message.Contains("Forbidden"))
+                {
+                    log.Warning("HTTP request was forbidden to URL: " + requestUrl);
+                }
+                else
+                {
+                    log.Error("Error in ProcessPhotosToDownload", ex);
+                }
             }
         }
 

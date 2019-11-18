@@ -196,6 +196,7 @@
     <Compile Include="Entities\BlogEntity.cs" />
     <Compile Include="Entities\FrequencyEntity.cs" />
     <Compile Include="Entities\ImageAnalysisEntity.cs" />
+    <Compile Include="Entities\MonthIndex.cs" />
     <Compile Include="Entities\Partial\PostNotFoundEntity.cs" />
     <Compile Include="Entities\BlogStats.cs" />
     <Compile Include="Entities\PhotoUrlIndexEntity.cs" />

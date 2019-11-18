@@ -22,7 +22,12 @@ namespace Functions
                 return null;
             }
 
-            string decodedBody = JsonConvert.DeserializeObject<string>(body);
+            string decodedBody = body;
+
+            if (body.StartsWith("\""))
+            {
+                decodedBody = JsonConvert.DeserializeObject<string>(body);
+            }
 
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(decodedBody);

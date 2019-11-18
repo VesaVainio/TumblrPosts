@@ -33,6 +33,9 @@ namespace TableInterface
             CloudTable blogsTable = tableClient.GetTableReference("Blogs");
             blogsTable.CreateIfNotExists();
 
+            CloudTable monthIndexTable = tableClient.GetTableReference("MonthIndex");
+            monthIndexTable.CreateIfNotExists();
+
             CloudTable imageAnalysisTable = tableClient.GetTableReference("ImageAnalysis");
             imageAnalysisTable.CreateIfNotExists();
 

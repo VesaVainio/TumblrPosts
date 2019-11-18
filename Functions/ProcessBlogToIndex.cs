@@ -57,6 +57,7 @@ namespace Functions
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
             UpdateBlogStatsFromPosts(blogStats, postEntities);
             UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, mediaToDownloadQueueAdapter, log);
+            UpdateMonthIndex(blogToIndex.Blogname, postEntities, blogInfoTableAdapter);
 
             log.Info("Loaded " + postEntities.Count + " post entities");
 
@@ -82,9 +83,34 @@ namespace Functions
             }
 
             blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, 
-                postsTableAdapter, mediaToDownloadQueueAdapter, photoIndexTableAdapter, log);
+                postsTableAdapter, photoIndexTableAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
+        }
+
+        private static void UpdateMonthIndex(string blogname, List<PostEntity> postEntities, BlogInfoTableAdapter blogInfoTableAdapter)
+        {
+            Dictionary<string, MonthIndex> indexEntriesByMonth = new Dictionary<string, MonthIndex>();
+
+            foreach (PostEntity postEntity in postEntities)
+            {
+                string monthKey = postEntity.Date.ToString(MonthIndex.MonthKeyFormat);
+                if (!indexEntriesByMonth.TryGetValue(monthKey, out MonthIndex indexEntry))
+                {
+                    indexEntry = new MonthIndex(blogname, monthKey);
+                    indexEntriesByMonth.Add(monthKey, indexEntry);
+                }
+
+                indexEntry.MonthsPosts++;
+
+                long postId = long.Parse(postEntity.RowKey);
+                if (indexEntry.FirstPostId == 0 || postId < indexEntry.FirstPostId)
+                {
+                    indexEntry.FirstPostId = postId;
+                }
+            }
+
+            blogInfoTableAdapter.InsertMonthIndice(indexEntriesByMonth.Values);
         }
 
         private static void UpdatePostEntities(string blogname, List<PostEntity> postEntities,
@@ -173,7 +199,7 @@ namespace Functions
 
         private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
             ReversePostsTableAdapter reversePostsTableAdapter, PostsTableAdapter postsTableAdapter,
-            MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, PhotoIndexTableAdapter photoIndexTableAdapter, TraceWriter log)
+            PhotoIndexTableAdapter photoIndexTableAdapter, TraceWriter log)
         {
             int index = 0;
 

@@ -76,12 +76,15 @@ namespace Functions
                 } while (offset < totalInBlog && offset < maxOffset);
             }
 
-            BlogEntity blogEntity = new BlogEntity(blog)
+            if (blog != null)
             {
-                FetchedUntilOffset = updateNpf ? (int?)null : offset,
-                LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow)
-            };
-            blogInfoTableAdapter.InsertBlog(blogEntity);
+                BlogEntity blogEntity = new BlogEntity(blog)
+                {
+                    FetchedUntilOffset = updateNpf ? (int?) null : offset,
+                    LastFetched = FunctionUtilities.GetUnixTime(DateTime.UtcNow)
+                };
+                blogInfoTableAdapter.InsertBlog(blogEntity);
+            }
 
             return new GetPostsResult
             {

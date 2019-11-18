@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,6 +49,7 @@
     <Compile Include="Canonical\ImageAnalysis.cs" />
     <Compile Include="Canonical\Label.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Converters\SingleOrArrayConverter.cs" />
     <Compile Include="Google\BestGuessLabel.cs" />
     <Compile Include="Google\BoundingBox.cs" />
     <Compile Include="Google\BoundingPoly.cs" />
@@ -123,6 +127,9 @@
     <Compile Include="Tumblr\Post.cs" />
     <Compile Include="Tumblr\PostType.cs" />
     <Compile Include="Tumblr\TumblrResponse.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

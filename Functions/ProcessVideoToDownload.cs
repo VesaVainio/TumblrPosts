@@ -60,7 +60,7 @@ namespace Functions
                 {
                     try
                     {
-                        Video blobVideo = await blobAdapter.HandleVideo(videoUrls, videosToDownload.IndexInfo.BlogName);
+                        Video blobVideo = await blobAdapter.HandleVideo(videoUrls, videosToDownload.IndexInfo.BlogName, log);
                         videos.Add(blobVideo);
 
                         videoIndexTableAdapter.InsertVideoIndex(blogname, id, date, blobVideo, videosToDownload.VideoType, blobVideo.Bytes, videosToDownload.Duration);

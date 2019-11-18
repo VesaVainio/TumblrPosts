@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Model.Converters;
+using Newtonsoft.Json;
 
 namespace Model.Tumblr
 {
@@ -12,7 +9,10 @@ namespace Model.Tumblr
         public string SubType { get; set; }
         public string Text { get; set; }
         public Formatting[] Formatting { get; set; }
+
+        [JsonConverter(typeof(SingleOrArrayConverter<Media>))]
         public Media[] Media { get; set; }
+
         public Poster[] Poster { get; set; }
         public string Url { get; set; }
     }

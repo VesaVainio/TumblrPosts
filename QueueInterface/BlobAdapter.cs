@@ -157,7 +157,7 @@ namespace QueueInterface
             throw new ArgumentException("Unexpected ending in: " + path);
         }
 
-        public async Task<Video> HandleVideo(VideoUrls videoUrls, string blogName)
+        public async Task<Video> HandleVideo(VideoUrls videoUrls, string blogName, TraceWriter log)
         {
             CloudBlobContainer serverContainer = cloudBlobClient.GetContainerReference(blogName.ToLower());
             if (!await serverContainer.ExistsAsync())
@@ -177,14 +177,14 @@ namespace QueueInterface
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("video/*"));
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
-                CloudBlockBlob videoBlob = await HandleVideoBlob(videoUrls.VideoUrl, serverContainer, httpClient);
+                CloudBlockBlob videoBlob = await HandleVideoBlob(videoUrls.VideoUrl, serverContainer, httpClient, log);
                 CloudBlockBlob thumbBlob = await HandleThumbBlob(videoUrls.VideoThumbUrl, serverContainer, httpClient);
 
                 return new Video { Url = videoBlob.Uri.ToString(), ThumbUrl = thumbBlob.Uri.ToString(), Bytes = videoBlob.Properties.Length };
             }
         }
 
-        private static async Task<CloudBlockBlob> HandleVideoBlob(string videoUrl, CloudBlobContainer serverContainer, HttpClient httpClient)
+        private static async Task<CloudBlockBlob> HandleVideoBlob(string videoUrl, CloudBlobContainer serverContainer, HttpClient httpClient, TraceWriter log)
         {
             VideoUrlHelper videoUrlHelper = VideoUrlHelper.Parse(videoUrl);
 
@@ -206,6 +206,18 @@ namespace QueueInterface
             else if (videoUrlHelper.FileName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase))
             {
                 videoBlob.Properties.ContentType = "video/quicktime";
+            }
+            else if (videoUrlHelper.Server.Contains("youtube.com"))
+            {
+                log.Warning("Video from youtube.com skipped: " + videoUrl);
+            }
+            else if (videoUrlHelper.Server.Contains("instagram.com"))
+            {
+                log.Warning("Video from instagram.com skipped: " + videoUrl);
+            }
+            else if (videoUrlHelper.Server.Contains("vimeo.com"))
+            {
+                log.Warning("Video from vimeo.com skipped: " + videoUrl);
             }
             else
             {
