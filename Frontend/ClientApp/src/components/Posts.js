@@ -11,9 +11,11 @@ export class Posts extends Component {
     super(props);
     this.state = { posts: [], loading: true, hasMore: false };
     this.isFetching = false;
+    this.packTriggerComing = false;
 
     this.loadMore = this.loadMore.bind(this);
     this.imageReady = this.imageReady.bind(this);
+    this.doForcePack = this.doForcePack.bind(this);
 
     fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
       .then(response => response.json())
@@ -21,7 +23,11 @@ export class Posts extends Component {
         this.setState({ posts: data, loading: false, hasMore: data.length === 20 });
       });
   }
-  
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
   loadMore() {
     if (this.isFetching) {
       return;
@@ -40,7 +46,16 @@ export class Posts extends Component {
       });
   }
 
+  doForcePack() {
+    this.masonryGrid.forcePack();
+    this.packTriggerComing = false;
+  }
+
   imageReady() {
+    if (!this.packTriggerComing) {
+      this.timeout = setTimeout(this.doForcePack, 250);
+      this.packTriggerComing = true;
+    }
     this.masonryGrid.forcePack();
   }
 
