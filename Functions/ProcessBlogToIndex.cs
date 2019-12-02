@@ -56,7 +56,6 @@ namespace Functions
 
             List<PostEntity> postEntities = postsTableAdapter.GetAll(blogToIndex.Blogname);
             UpdateBlogStatsFromPosts(blogStats, postEntities);
-            UpdatePostEntities(blogToIndex.Blogname, postEntities, photosByBlogById, postsTableAdapter, mediaToDownloadQueueAdapter, log);
             UpdateMonthIndex(blogToIndex.Blogname, postEntities, blogInfoTableAdapter);
 
             log.Info("Loaded " + postEntities.Count + " post entities");
@@ -83,7 +82,7 @@ namespace Functions
             }
 
             blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, 
-                postsTableAdapter, photoIndexTableAdapter, log);
+                postsTableAdapter, photoIndexTableAdapter, mediaToDownloadQueueAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
         }
@@ -111,45 +110,6 @@ namespace Functions
             }
 
             blogInfoTableAdapter.InsertMonthIndice(indexEntriesByMonth.Values);
-        }
-
-        private static void UpdatePostEntities(string blogname, List<PostEntity> postEntities,
-            Dictionary<string, List<Photo>> photosByBlogById, PostsTableAdapter postsTableAdapter,
-            MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
-        {
-            int index = 0;
-            List<PostEntity> toUpdate = new List<PostEntity>(100);
-
-            foreach (PostEntity postEntity in postEntities)
-            {
-                if (postEntity.PicsDownloadLevel < 4)
-                {
-                    if (photosByBlogById.TryGetValue(postEntity.RowKey, out List<Photo> photos))
-                    {
-                        postEntity.PhotoBlobUrls = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
-                        postEntity.PicsDownloadLevel = Constants.MaxPicsDownloadLevel;
-                        toUpdate.Add(postEntity);
-
-                        index++;
-                        if (index % 100 == 0)
-                        {
-                            postsTableAdapter.InsertBatch(toUpdate);
-                            toUpdate.Clear();
-                            log.Info($"Updated {index} posts for {blogname}");
-                        }
-                    }
-                    else
-                    {
-                        SendToReprocessing(blogname, mediaToDownloadQueueAdapter, log, postEntity);
-                    }
-                }                
-            }
-
-            if (toUpdate.Count > 0)
-            {
-                postsTableAdapter.InsertBatch(toUpdate);
-                log.Info($"Updated {index} posts for {blogname}");
-            }
         }
 
         private static void SendToReprocessing(string blogname, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log, PostEntity postEntity)
@@ -199,7 +159,7 @@ namespace Functions
 
         private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
             ReversePostsTableAdapter reversePostsTableAdapter, PostsTableAdapter postsTableAdapter,
-            PhotoIndexTableAdapter photoIndexTableAdapter, TraceWriter log)
+            PhotoIndexTableAdapter photoIndexTableAdapter, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
         {
             int index = 0;
 
@@ -221,11 +181,23 @@ namespace Functions
                 {
                     string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
 
-                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, photos, log);
-                    entity.ModifiedBody = modifiedBody;
+                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, photos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos);
+                    if (extractedPhotos != null && extractedPhotos.Count > 0)
+                    {
+                        PhotosToDownload photosToDownload = new PhotosToDownload(entity)
+                        {
+                            Photos = extractedPhotos.ToArray()
+                        };
+                        mediaToDownloadQueueAdapter.SendPhotosToDownload(photosToDownload);
+                        log.Warning("Could not modify body successfully, sending PhotosToDownload to get missing photos");
+                    }
+                    else
+                    {
+                        entity.ModifiedBody = modifiedBody;
 
-                    postsTableAdapter.InsertPost(entity);
-                    log.Info($"ModifiedBody updated on post {entity.PartitionKey}/{entity.RowKey}");
+                        postsTableAdapter.InsertPost(entity);
+                        log.Info($"ModifiedBody updated on post {entity.PartitionKey}/{entity.RowKey}");
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(reversePost.Photos) || !string.IsNullOrEmpty(reversePost.Videos) || !string.IsNullOrEmpty(reversePost.Body))

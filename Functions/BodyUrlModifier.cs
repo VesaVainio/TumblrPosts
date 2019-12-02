@@ -15,8 +15,10 @@ namespace Functions
 {
     public static class BodyUrlModifier
     {
-        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, List<Photo> sitePhotos, TraceWriter log)
+        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, List<Photo> sitePhotos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos)
         {
+            extractedPhotos = null;
+            
             if (string.IsNullOrEmpty(body))
             {
                 return null;
@@ -32,6 +34,7 @@ namespace Functions
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(decodedBody);
             List<HtmlNode> imgNodes = htmlDoc.DocumentNode.Descendants("img").ToList();
+            bool hasPhotosNotFound = false;
             foreach (HtmlNode imgNode in imgNodes)
             {
                 string url = imgNode.Attributes["src"].Value;
@@ -41,6 +44,15 @@ namespace Functions
                 {
                     imgNode.Attributes["src"].Value = mappedUrl;
                 }
+                else
+                {
+                    hasPhotosNotFound = true;
+                }
+            }
+
+            if (hasPhotosNotFound)
+            {
+                extractedPhotos = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
             }
 
             StringWriter sw = new StringWriter();

@@ -326,16 +326,23 @@ namespace Functions
             Photo photo = new Photo();
             List<AltSize> altSizes = new List<AltSize>();
 
-            foreach (int size in DownloadSizes)
+            if (!string.IsNullOrEmpty(helper.Hash)) // new format photo url
             {
-                AltSize altSize = new AltSize
+                altSizes.Add(new AltSize { Url = src });
+            }
+            else
+            {
+                foreach (int size in DownloadSizes)
                 {
-                    Url = "https://" + helper.Server + ".media.tumblr.com/" + (helper.Container != null ? helper.Container + "/" : "") + "tumblr_" +
-                          helper.Name + "_" + size + "." + helper.Extension,
-                    Width = 0,
-                    Height = 0
-                };
-                altSizes.Add(altSize);
+                    AltSize altSize = new AltSize
+                    {
+                        Url = "https://" + helper.Server + ".media.tumblr.com/" + (helper.Container != null ? helper.Container + "/" : "") + "tumblr_" +
+                              helper.Name + "_" + size + "." + helper.Extension,
+                        Width = 0,
+                        Height = 0
+                    };
+                    altSizes.Add(altSize);
+                }
             }
 
             photo.Alt_sizes = altSizes.ToArray();

@@ -1,4 +1,5 @@
 ﻿using QueueInterface.Messages.Dto;
+using TableInterface.Entities;
 using TumblrPics.Model.Tumblr;
 
 namespace QueueInterface.Messages
@@ -23,6 +24,16 @@ namespace QueueInterface.Messages
             PostType = tumblrPost.Type.ToString();
             Body = tumblrPost.Body;
             Title = tumblrPost.Title;
+        }
+
+        public PhotosToDownload(PostEntity postEntity)
+        {
+            IndexInfo = new PostIndexInfo { BlogName = postEntity.PartitionKey, PostId = postEntity.RowKey, PostDate = postEntity.Date };
+            ReblogKey = string.IsNullOrEmpty(postEntity.ReblogKey) ? null : postEntity.ReblogKey;
+            SourceBlog = string.IsNullOrEmpty(postEntity.SourceTitle) ? null : postEntity.SourceTitle;
+            PostType = postEntity.Type;
+            Body = postEntity.Body;
+            Title = postEntity.Title;
         }
     }
 }

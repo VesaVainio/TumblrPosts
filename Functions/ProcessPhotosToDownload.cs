@@ -111,7 +111,12 @@ namespace Functions
                     }
                 }
 
-                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, sitePhotos, log);
+                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, sitePhotos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos);
+
+                if (extractedPhotos != null)
+                {
+                    log.Warning("Trying to modify body in ProcessPhotosToDownload but some images were not possible to replace");
+                }
 
                 postsTableAdapter.MarkPhotosAsDownloaded(photosToDownload.IndexInfo.BlogName, photosToDownload.IndexInfo.PostId, sitePhotos, modifiedBody);
 
