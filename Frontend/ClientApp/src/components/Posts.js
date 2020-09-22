@@ -77,12 +77,14 @@ export class Posts extends Component {
             {(post.Photos && post.Photos.length !== 0) &&
               <div className="photo-post"><a href={ "/#/post/" + post.Blogname + "/" + post.Id}> 
                 <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
+                <div className="post-date">{post.Date.substring(0,10)}</div>
+                <div className="post-photo-count">{post.Photos.length} photos</div>
               </a></div>
             }
             {(post.Videos && post.Videos.length !== 0) &&
               <div className="video-post"><a href={"/#/post/" + post.Blogname + "/" + post.Id}>
                 <img src={post.Videos[0].ThumbUrl} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
-                <img src={require('./images/video_play.png')} class="video-icon-overlay" alt="" />
+                <img src={require('./images/video_play.png')} className="video-icon-overlay" alt="" />
               </a></div>
             }
           </div>
@@ -98,7 +100,7 @@ export class Posts extends Component {
 
     return (
       <Row>
-        <div class='col'>
+        <div className='col'>
           <h1>{this.props.match.params.blogname}</h1>
           {contents}
         </div>

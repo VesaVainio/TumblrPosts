@@ -10,10 +10,6 @@ import PropTypes from 'prop-types';
 class Blogs extends Component {
   displayName = Blogs.name
 
-  constructor(props) {
-    super(props);
-  }
-
   componentWillMount() {
     if (!this.props.blogs || this.props.blogs.length === 0) {
       this.props.actions.loadBlogList();
@@ -31,7 +27,7 @@ class Blogs extends Component {
             <td class='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
             <td class='col text-right'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
           </tr>
-        );}.bind(this));
+        );});
 
     return (
       <table className='table'>
@@ -58,7 +54,7 @@ class Blogs extends Component {
 
     return (
       <Row>
-        <div class='col-12 col-lg-8'>
+        <div className='col-12 col-lg-8'>
           <h1>Blogs available</h1>
           {contents}
         </div>
