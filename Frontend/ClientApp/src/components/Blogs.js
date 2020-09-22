@@ -20,12 +20,12 @@ class Blogs extends Component {
     //var self = this;
     var rows = blogs.map(function(blog) {
         return (
-          <tr key={blog.Name} class='d-flex'>
-            <td class='col-10 col-md-4'><a href={'/#/posts/' + blog.Name}>{blog.Name}</a></td>
-            <td class='col-5 d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Title ? blog.Title : '\u00A0'}</a></td>
-            <td class='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Photo}</a></td>
-            <td class='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
-            <td class='col text-right'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
+          <tr key={blog.Name} className='d-flex'>
+            <td className='col-10 col-md-4'><a href={'/#/posts/' + blog.Name}>{blog.Name}</a></td>
+            <td className='col-5 d-none d-md-table-cell'><a href={'/#/posts/' + blog.Name}>{blog.Title ? blog.Title : '\u00A0'}</a></td>
+            <td className='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Photo}</a></td>
+            <td className='col d-none d-md-table-cell text-right'><a href={'/#/posts/' + blog.Name}>{blog.Video}</a></td>
+            <td className='col text-right'><a href={'/#/posts/' + blog.Name}>{blog.TotalPosts}</a></td>
           </tr>
         );});
 
