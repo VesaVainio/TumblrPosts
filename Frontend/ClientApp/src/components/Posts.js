@@ -74,11 +74,6 @@ export class Posts extends Component {
       >
         {posts.map(post =>
           <div key={post.Id}>
-            {((!post.Photos || post.Photos.length === 0) && (!post.Videos || post.Videos.length === 0)) && 
-              <div width="250">
-                <a href={"/#/post/" + post.Blogname + "/" + post.Id}>No photo</a>
-              </div>
-            }
             {(post.Photos && post.Photos.length !== 0) &&
               <div className="photo-post"><a href={ "/#/post/" + post.Blogname + "/" + post.Id}> 
                 <img src={Utils.GetSmallPhotoUrl(post)} width="250" data-id={post.Id} onLoad={this.imageReady} onError={this.imageReady} alt="" />
