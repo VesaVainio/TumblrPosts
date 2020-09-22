@@ -32,12 +32,12 @@ class Blogs extends Component {
     return (
       <table className='table'>
         <thead>
-          <tr class='d-flex'>
-            <th class='col-10 col-md-4'>Name</th>
-            <th class='col-5 d-none d-md-table-cell'>Title</th>
-            <th class='col d-none d-md-table-cell'>Photos</th>
-            <th class='col d-none d-md-table-cell'>Videos</th>
-            <th class='col'>Total</th>
+          <tr className='d-flex'>
+            <th className='col-10 col-md-4'>Name</th>
+            <th className='col-5 d-none d-md-table-cell'>Title</th>
+            <th className='col d-none d-md-table-cell'>Photos</th>
+            <th className='col d-none d-md-table-cell'>Videos</th>
+            <th className='col'>Total</th>
           </tr>
         </thead>
         <tbody className='blog-table'>

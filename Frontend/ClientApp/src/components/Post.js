@@ -25,8 +25,8 @@ export class Post extends Component {
     if (post.Videos && post.Videos.length !== 0) {
       return (
         <div>
-          {post.Videos.map(video =>
-            <Row>
+          {post.Videos.map((video, index) =>
+            <Row key={index}>
               <video controls src={video.Url}>
                 Video not supported.
               </video>
@@ -38,9 +38,9 @@ export class Post extends Component {
       var photos = post.Photos;
       return (
         <div>
-        {photos.map(photo =>
-          <Row>
-            <div class="col photorow">
+        {photos.map((photo, index) =>
+          <Row key={index}>
+            <div className="col photorow">
               <img src={Utils.GetBigPhotoUrl(photo)} alt="" />
             </div>
           </Row>
@@ -64,7 +64,7 @@ export class Post extends Component {
     return (
       <div>
       <Row>
-        <div class='col'>
+        <div className='col'>
           <h1>{this.props.match.params.blogname}</h1>
         </div>
       </Row>
