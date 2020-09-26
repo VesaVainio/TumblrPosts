@@ -1,7 +1,9 @@
 ﻿import React, { Component } from 'react';
 import { Link, HashRouter } from 'react-router-dom';
+import { Route } from 'react-router';
 import { Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
+import { MonthIndex } from './MonthIndex';
 import './NavMenu.css';
 import $ from 'jquery';
 
@@ -43,7 +45,8 @@ export class NavMenu extends Component {
               <Nav.Link>Blogs</Nav.Link>
             </LinkContainer>
           </Nav>
-        </Navbar.Collapse>
+          </Navbar.Collapse>
+          <Route path='/posts/:blogname' component={MonthIndex} />
         </Navbar>
         </HashRouter>
     );

@@ -98,6 +98,7 @@
     <Compile Include="Microsoft\Tag.cs" />
     <Compile Include="SanityHelper.cs" />
     <Compile Include="Site\BlogInfo.cs" />
+    <Compile Include="Site\MonthIndex.cs" />
     <Compile Include="Site\Photo.cs" />
     <Compile Include="Site\PhotoSize.cs" />
     <Compile Include="Site\Post.cs" />

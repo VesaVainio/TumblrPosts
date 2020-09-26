@@ -13,7 +13,7 @@ export default class App extends Component {
     return (
       <Layout>
         <Route exact path='/' component={Home} />
-        <Route path='/posts/:blogname' component={Posts} />
+        <Route path='/posts/:blogname/:after?' component={Posts} />
         <Route path='/post/:blogname/:postid' component={Post} />
         <Route path='/blogs' component={Blogs} />
       </Layout>

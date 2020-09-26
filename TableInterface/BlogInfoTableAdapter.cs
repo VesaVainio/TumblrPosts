@@ -56,6 +56,14 @@ namespace TableInterface
             return result.ToList();
         }
 
+        public List<MonthIndex> GetMonthIndex(string blogname)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogname);
+            TableQuery<MonthIndex> query = new TableQuery<MonthIndex>().Where(pkFilter);
+            IEnumerable<MonthIndex> result = monthIndexTable.ExecuteQuery(query);
+            return result.ToList();
+        }
+
         public void InsertMonthIndex(MonthIndex monthIndex)
         {
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(monthIndex);
@@ -69,7 +77,7 @@ namespace TableInterface
             int count = 0;
             foreach (MonthIndex item in monthIndice)
             {
-                batchOperation.InsertOrMerge(item);
+                batchOperation.InsertOrReplace(item);
                 count++;
                 if (count == 100)
                 {

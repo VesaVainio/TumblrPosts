@@ -20,11 +20,16 @@ namespace TableInterface.Entities
         {
             PartitionKey = blogname;
             long idLong = long.Parse(id);
-            RowKey = (10000000000000 - idLong).ToString();
+            RowKey = GetRowKeyId(idLong).ToString();
             Type = type;
             Date = date;
             Body = body;
             Title = title;
+        }
+
+        public static long GetRowKeyId(long idLong)
+        {
+            return 10000000000000 - idLong;
         }
 
         public Post GetSitePost()

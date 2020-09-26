@@ -1,15 +1,11 @@
-using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using QueueInterface;
 using QueueInterface.Messages;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using Microsoft.WindowsAzure.Storage.File.Protocol;
 using TableInterface;
 
 namespace Functions
@@ -17,7 +13,8 @@ namespace Functions
     public static class InitIndexing
     {
         [FunctionName("InitIndexing")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "initindexing")]HttpRequestMessage req, TraceWriter log)
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "initindexing")]
+            HttpRequestMessage req, TraceWriter log)
         {
             Startup.Init();
 

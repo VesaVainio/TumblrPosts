@@ -17,11 +17,24 @@ export class Posts extends Component {
     this.imageReady = this.imageReady.bind(this);
     this.doForcePack = this.doForcePack.bind(this);
 
-    fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname)
+    this.loadData(props);
+  }
+
+  loadData(props) {
+    fetch(process.env.REACT_APP_API_ROOT + '/api/posts/' + props.match.params.blogname + (props.match.params.after ? "?after=" + props.match.params.after : ""))
       .then(response => response.json())
       .then(data => {
         this.setState({ posts: data, loading: false, hasMore: data.length === 20 });
       });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.pathname !== this.props.location.pathname) {
+      this.setState({ posts: [], loading: true, hasMore: false }, () => {
+        // this.masonryGrid.forceUpdate();
+        this.loadData(nextProps);
+      });
+    }
   }
 
   componentWillUnmount() {

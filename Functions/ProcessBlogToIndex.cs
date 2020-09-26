@@ -14,6 +14,7 @@ using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
+using MonthIndex = TableInterface.Entities.MonthIndex;
 
 namespace Functions
 {
@@ -105,7 +106,7 @@ namespace Functions
                 long postId = long.Parse(postEntity.RowKey);
                 if (indexEntry.FirstPostId == 0 || postId < indexEntry.FirstPostId)
                 {
-                    indexEntry.FirstPostId = postId;
+                    indexEntry.FirstPostId = ReversePostEntity.GetRowKeyId(postId);
                 }
             }
 
@@ -177,7 +178,7 @@ namespace Functions
                     reversePost.Videos = entity.VideoBlobUrls;
                 }
 
-                if (/*string.IsNullOrEmpty(entity.ModifiedBody) && */!string.IsNullOrEmpty(entity.Body))
+                if (string.IsNullOrEmpty(entity.ModifiedBody) && !string.IsNullOrEmpty(entity.Body))
                 {
                     string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
 
