@@ -48,18 +48,10 @@ namespace Functions
             {
                 foreach (BlogStatsRow blogStatsRow in stats)
                 {
-                    if (blogStatsRow.LikedPostCount < 5)
+                    if (blogStatsRow.LikedPostCount < 10)
                     {
                         continue;
                     }
-
-                    blogToFetchQueueAdapter.SendBlogToFetch(new BlogToFetch
-                    {
-                        Blogname = blogStatsRow.Blogname,
-                        UpdateNpf = true
-                    });
-                    toDownload.Add(blogStatsRow);
-                    continue;
 
                     string url = "https://api.tumblr.com/v2/blog/" + blogStatsRow.Blogname + "/info?api_key=" + apiKey;
                     //log.Info("Making request to: " + url);
