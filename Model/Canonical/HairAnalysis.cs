@@ -11,6 +11,7 @@ namespace Model.Canonical
         public decimal HairGray { get; set; }
         public decimal HairOther { get; set; }
         public decimal HairBlack { get; set; }
+        public decimal HairWhite { get; set; }
         public decimal Bald { get; set; }
 
         public HairAnalysis() { }
@@ -38,6 +39,9 @@ namespace Model.Canonical
                         break;
                     case "black":
                         HairBlack = hairColor.Confidence;
+                        break;
+                    case "white":
+                        HairWhite = hairColor.Confidence;
                         break;
                     default:
                         throw new ArgumentException("Unexpected hair color");
