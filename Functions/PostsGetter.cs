@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
+using Newtonsoft.Json;
 using QueueInterface;
 using TableInterface;
 using TableInterface.Entities;
@@ -133,7 +134,8 @@ namespace Functions
                     HttpResponseMessage response = await httpClient.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
-                        TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
+                        string content = await response.Content.ReadAsStringAsync();
+                        TumblrResponse<BlogPosts> tumblrResponse = JsonConvert.DeserializeObject<TumblrResponse<BlogPosts>>(content);
                         BlogPosts blogPosts = tumblrResponse.Response;
 
                         totalInBlog = blogPosts.Blog.Posts;
