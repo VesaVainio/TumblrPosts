@@ -88,7 +88,7 @@ namespace Functions
 
             VisionApiRequest request = VisionApiRequest.CreateFromImageUris(photoToAnalyze.Url);
 
-            VisionApiResponse visionApiResponse = await MakeVisionApiRequest(httpClient, request, url);
+            VisionApiResponse visionApiResponse = await MakeVisionApiRequest(httpClient, request, url, log);
 
             if (visionApiResponse?.Responses[0].Error != null)
             {
@@ -99,7 +99,7 @@ namespace Functions
                     byte[] photoBytes = await httpClient.GetByteArrayAsync(photoToAnalyze.Url);
                     log.Info($"Got {photoBytes.Length} bytes, making Google API request with Content");
                     request = VisionApiRequest.CreateFromContent(photoBytes);
-                    visionApiResponse = await MakeVisionApiRequest(httpClient, request, url);
+                    visionApiResponse = await MakeVisionApiRequest(httpClient, request, url, log);
                 }
 
                 if (visionApiResponse?.Responses[0].Error != null)
@@ -115,7 +115,7 @@ namespace Functions
             return visionApiResponse;
         }
 
-        private static async Task<VisionApiResponse> MakeVisionApiRequest(HttpClient httpClient, VisionApiRequest request, string url)
+        private static async Task<VisionApiResponse> MakeVisionApiRequest(HttpClient httpClient, VisionApiRequest request, string url, TraceWriter log)
         {
             string requestJson = JsonConvert.SerializeObject(request, JsonUtils.GoogleSerializerSettings);
 
@@ -124,6 +124,12 @@ namespace Functions
             HttpResponseMessage response = await httpClient.PostAsync(url, stringContent);
             HttpContent responseContent = response.Content;
             string googleVisionResponseString = await responseContent.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                log.Error("Google Vision API request failed: " + googleVisionResponseString);
+                throw new InvalidOperationException("Google Vision API request failed");
+            }
 
             VisionApiResponse visionApiResponse =
                 JsonConvert.DeserializeObject<VisionApiResponse>(googleVisionResponseString, JsonUtils.GoogleSerializerSettings);
