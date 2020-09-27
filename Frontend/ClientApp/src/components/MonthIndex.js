@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Dropdown from "react-bootstrap/Dropdown";
+import './MonthIndex.css';
 
 export class MonthIndex extends Component {
   displayName = MonthIndex.name
@@ -24,7 +25,7 @@ export class MonthIndex extends Component {
 
         <Dropdown.Menu>
         {monthindex.map(monthindex =>
-          <Dropdown.Item href={ "#/posts/" + this.props.match.params.blogname + "/" + (monthindex.FirstPostId - 1) } key={monthindex.YearMonth}>
+          <Dropdown.Item className="month-index-item" href={ "#/posts/" + this.props.match.params.blogname + "/" + (monthindex.FirstPostId - 1) } key={monthindex.YearMonth}>
             {monthindex.YearMonth + " (" + monthindex.MonthsPosts + ")"}
           </Dropdown.Item>
         )}
