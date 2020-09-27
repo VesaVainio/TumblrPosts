@@ -74,7 +74,7 @@ namespace Functions
                 if (message != null && photoToAnalyze != null)
                 {
                     photoToAnalyze.Error = ex.Message;
-                    photoToAnalyze.StackTrace = ex.StackTrace.Substring(0, 40000);
+                    photoToAnalyze.StackTrace = ex.StackTrace.Substring(0, Math.Max(36000, ex.StackTrace.Length));
                     await photoToAnalyzeQueueAdapter.SendToPoisonQueue(photoToAnalyze);
                     log.Info($"Message for {photoToAnalyze.Url} stored to poison queue");
                     await photoToAnalyzeQueueAdapter.DeleteMessage(message);
