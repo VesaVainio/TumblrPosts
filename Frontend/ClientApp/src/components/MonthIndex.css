@@ -1,4 +1,13 @@
+.month-index {
+    margin-right: 30px;
+}
+
 .month-index-item {
     padding-top: 0;
     padding-bottom: 0;
+}
+
+.dropdown-menu {
+    max-height: 400px;
+    overflow-y: scroll;
 }

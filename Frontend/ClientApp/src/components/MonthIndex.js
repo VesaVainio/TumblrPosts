@@ -39,6 +39,6 @@ export class MonthIndex extends Component {
       ? <p><em>Loading...</em></p>
         : this.renderDropdown(this.state.monthindex);
 
-    return <div>{contents}</div>
+    return <div className="month-index">{contents}</div>
   }
 }
