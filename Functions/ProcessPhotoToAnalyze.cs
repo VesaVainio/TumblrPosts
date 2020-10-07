@@ -14,7 +14,7 @@ namespace Functions
     public static class ProcessPhotoToAnalyze
     {
         [FunctionName("ProcessPhotoToAnalyze")]
-        public static async Task Run([TimerTrigger("0 15,45 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 15 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             Startup.Init();
 
