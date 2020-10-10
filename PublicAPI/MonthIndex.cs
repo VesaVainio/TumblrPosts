@@ -23,7 +23,7 @@ namespace PublicAPI
 
             List<TableInterface.Entities.MonthIndex> monthIndexEntities = blogInfoTableAdapter.GetMonthIndex(blogname);
 
-            IEnumerable<Model.Site.MonthIndex> siteEntities = monthIndexEntities.Select(x => x.GetSiteEntity());
+            IEnumerable<Model.Site.MonthIndex> siteEntities = monthIndexEntities.Select(x => x.GetSiteEntity()).Reverse();
 
             string postsJson = JsonConvert.SerializeObject(siteEntities, JsonSerializerSettings);
 
