@@ -1,27 +1,29 @@
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using Model.Site;
-using Newtonsoft.Json;
-using QueueInterface;
-using QueueInterface.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
 using Model;
+using Model.Site;
+using Newtonsoft.Json;
+using QueueInterface;
+using QueueInterface.Messages;
 using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
 using MonthIndex = TableInterface.Entities.MonthIndex;
+using Photo = TumblrPics.Model.Tumblr.Photo;
 
 namespace Functions
 {
     public static class ProcessBlogToIndex
     {
         [FunctionName("ProcessBlogToIndex")]
-        public static async Task Run([QueueTrigger(Constants.BlogToIndexQueueName, Connection = "AzureWebJobsStorage")]string myQueueItem, TraceWriter log)
+        public static async Task Run([QueueTrigger(Constants.BlogToIndexQueueName, Connection = "AzureWebJobsStorage")]
+            string myQueueItem, TraceWriter log)
         {
             Startup.Init();
 
@@ -51,7 +53,7 @@ namespace Functions
 
             BlogEntity blogEntity = await blogInfoTableAdapter.GetBlog(blogToIndex.Blogname);
 
-            Dictionary<string, List<Photo>> photosByBlogById = CreatePhotosByBlogById(photoIndexEntities);
+            Dictionary<string, List<Model.Site.Photo>> photosByBlogById = CreatePhotosByBlogById(photoIndexEntities);
             BlogStats blogStats = CreateBlogStatsFromPhotos(photoIndexEntities, blogToIndex.Blogname);
             blogStats.UpdateFromBlogEntity(blogEntity);
 
@@ -67,7 +69,7 @@ namespace Functions
                 {
                     try
                     {
-                        Photo[] photos = JsonConvert.DeserializeObject<Photo[]>(postEntity.PhotoBlobUrls);
+                        Model.Site.Photo[] photos = JsonConvert.DeserializeObject<Model.Site.Photo[]>(postEntity.PhotoBlobUrls);
 
                         if (photos.Any(x => !x.Name.Contains("_")))
                         {
@@ -82,7 +84,7 @@ namespace Functions
                 }
             }
 
-            blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter, 
+            blogStats.DisplayablePosts = InsertReversePosts(blogToIndex.Blogname, photosByBlogById, postEntities, reversePostsTableAdapter,
                 postsTableAdapter, photoIndexTableAdapter, mediaToDownloadQueueAdapter, log);
 
             blogInfoTableAdapter.InsertBlobStats(blogStats);
@@ -117,14 +119,14 @@ namespace Functions
         {
             if (!string.IsNullOrEmpty(postEntity.PhotosJson))
             {
-                SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, JsonConvert.DeserializeObject<TumblrPics.Model.Tumblr.Photo[]>(postEntity.PhotosJson));
+                SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, JsonConvert.DeserializeObject<Photo[]>(postEntity.PhotosJson));
             }
             else if (!string.IsNullOrEmpty(postEntity.Body))
             {
                 HtmlDocument htmlDoc = new HtmlDocument();
                 string unescapedBody = JsonConvert.DeserializeObject<string>(postEntity.Body);
                 htmlDoc.LoadHtml(unescapedBody);
-                List<TumblrPics.Model.Tumblr.Photo> photosFromHtml = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
+                List<Photo> photosFromHtml = PostProcessor.ExctractPhotosFromHtml(htmlDoc);
                 if (photosFromHtml.Count > 0)
                 {
                     SendPhotosToDownload(mediaToDownloadQueueAdapter, postEntity, photosFromHtml.ToArray());
@@ -140,7 +142,7 @@ namespace Functions
             }
         }
 
-        private static void SendPhotosToDownload(MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, PostEntity postEntity, TumblrPics.Model.Tumblr.Photo[] photos)
+        private static void SendPhotosToDownload(MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, PostEntity postEntity, Photo[] photos)
         {
             mediaToDownloadQueueAdapter.SendPhotosToDownload(new PhotosToDownload
             {
@@ -158,7 +160,7 @@ namespace Functions
             });
         }
 
-        private static int InsertReversePosts(string blogname, Dictionary<string, List<Photo>> photosByBlogById, List<PostEntity> postEntities,
+        private static int InsertReversePosts(string blogname, Dictionary<string, List<Model.Site.Photo>> photosByBlogById, List<PostEntity> postEntities,
             ReversePostsTableAdapter reversePostsTableAdapter, PostsTableAdapter postsTableAdapter,
             PhotoIndexTableAdapter photoIndexTableAdapter, MediaToDownloadQueueAdapter mediaToDownloadQueueAdapter, TraceWriter log)
         {
@@ -168,8 +170,9 @@ namespace Functions
 
             foreach (PostEntity entity in postEntities)
             {
-                ReversePostEntity reversePost = new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.ModifiedBody, entity.Title);
-                if (photosByBlogById.TryGetValue(entity.RowKey, out List<Photo> photos))
+                ReversePostEntity reversePost =
+                    new ReversePostEntity(entity.PartitionKey, entity.RowKey, entity.Type, entity.Date, entity.ModifiedBody, entity.Title);
+                if (photosByBlogById.TryGetValue(entity.RowKey, out List<Model.Site.Photo> photos))
                 {
                     reversePost.Photos = JsonConvert.SerializeObject(photos, JsonUtils.JsonSerializerSettings);
                 }
@@ -182,7 +185,7 @@ namespace Functions
                 {
                     string sourceBlog = string.IsNullOrEmpty(entity.SourceTitle) ? blogname : SanityHelper.SanitizeSourceBlog(entity.SourceTitle);
 
-                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, photos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos);
+                    string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, entity.Body, photoIndexTableAdapter, photos, out List<Photo> extractedPhotos);
                     if (extractedPhotos != null && extractedPhotos.Count > 0)
                     {
                         PhotosToDownload photosToDownload = new PhotosToDownload(entity)
@@ -228,63 +231,75 @@ namespace Functions
                 switch (post.Type)
                 {
                     case "Text":
-                        {
-                            blogStats.Text++;
-                            break;
-                        }
-                    case "Quote":
-                        {
-                            blogStats.Quote++;
-                            break;
-                        }
-                    case "Link":
-                        {
-                            blogStats.Link++;
-                            break;
-                        }
-                    case "Answer":
-                        {
-                            blogStats.Answer++;
-                            break;
-                        }
-                    case "Video":
+                    {
+                        if (!string.IsNullOrEmpty(post.VideoBlobUrls))
                         {
                             blogStats.Video++;
-                            break;
                         }
-                    case "Audio":
-                        {
-                            blogStats.Audio++;
-                            break;
-                        }
-                    case "Photo":
+                        else if (!string.IsNullOrEmpty(post.PhotoBlobUrls))
                         {
                             blogStats.Photo++;
-                            break;
                         }
-                    case "Chat":
+                        else
                         {
-                            blogStats.Chat++;
-                            break;
+                            blogStats.Text++;
                         }
+
+                        break;
+                    }
+                    case "Quote":
+                    {
+                        blogStats.Quote++;
+                        break;
+                    }
+                    case "Link":
+                    {
+                        blogStats.Link++;
+                        break;
+                    }
+                    case "Answer":
+                    {
+                        blogStats.Answer++;
+                        break;
+                    }
+                    case "Video":
+                    {
+                        blogStats.Video++;
+                        break;
+                    }
+                    case "Audio":
+                    {
+                        blogStats.Audio++;
+                        break;
+                    }
+                    case "Photo":
+                    {
+                        blogStats.Photo++;
+                        break;
+                    }
+                    case "Chat":
+                    {
+                        blogStats.Chat++;
+                        break;
+                    }
                 }
 
                 blogStats.TotalPosts++;
             }
         }
 
-        private static Dictionary<string, List<Photo>> CreatePhotosByBlogById(List<PhotoIndexEntity> photoIndexEntities)
+        private static Dictionary<string, List<Model.Site.Photo>> CreatePhotosByBlogById(List<PhotoIndexEntity> photoIndexEntities)
         {
-            Dictionary<string, List<Photo>> currentDictionary = new Dictionary<string, List<Photo>>();
+            Dictionary<string, List<Model.Site.Photo>> currentDictionary = new Dictionary<string, List<Model.Site.Photo>>();
 
             foreach (PhotoIndexEntity entity in photoIndexEntities)
             {
                 PhotoUrlHelper urlHelper = PhotoUrlHelper.ParsePicai(entity.Uri);
                 if (urlHelper != null)
                 {
-                    if (currentDictionary.TryGetValue(entity.PostId, out List<Photo> photosForId))
+                    if (currentDictionary.TryGetValue(entity.PostId, out List<Model.Site.Photo> photosForId))
                     {
-                        Photo photo = photosForId.FirstOrDefault(x => x.Name.Equals(urlHelper.Name));
+                        Model.Site.Photo photo = photosForId.FirstOrDefault(x => x.Name.Equals(urlHelper.Name));
                         if (photo == null)
                         {
                             photo = CreatePhoto(urlHelper, entity);
@@ -292,14 +307,15 @@ namespace Functions
                         }
                         else
                         {
-                            PhotoSize photoSize = new PhotoSize { Container = urlHelper.Container, Nominal = urlHelper.Size, Heigth = entity.Height, Width = entity.Width };
+                            PhotoSize photoSize = new PhotoSize
+                                { Container = urlHelper.Container, Nominal = urlHelper.Size, Heigth = entity.Height, Width = entity.Width };
                             photo.Sizes = photo.Sizes.Concat(new[] { photoSize }).ToArray();
                         }
                     }
                     else
                     {
-                        photosForId = new List<Photo>();
-                        Photo photo = CreatePhoto(urlHelper, entity);
+                        photosForId = new List<Model.Site.Photo>();
+                        Model.Site.Photo photo = CreatePhoto(urlHelper, entity);
                         photosForId.Add(photo);
                         currentDictionary.Add(entity.PostId, photosForId);
                     }
@@ -355,9 +371,9 @@ namespace Functions
             return currentBlog;
         }
 
-        private static Photo CreatePhoto(PhotoUrlHelper urlHelper, PhotoIndexEntity entity)
+        private static Model.Site.Photo CreatePhoto(PhotoUrlHelper urlHelper, PhotoIndexEntity entity)
         {
-            return new Photo
+            return new Model.Site.Photo
             {
                 Name = urlHelper.Name,
                 Extension = urlHelper.Extension,
