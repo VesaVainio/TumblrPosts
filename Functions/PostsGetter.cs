@@ -44,7 +44,8 @@ namespace Functions
                     HttpResponseMessage response = await httpClient.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
-                        TumblrResponse<BlogPosts> tumblrResponse = await response.Content.ReadAsAsync<TumblrResponse<BlogPosts>>();
+                        string content = await response.Content.ReadAsStringAsync();
+                        TumblrResponse<BlogPosts> tumblrResponse = JsonConvert.DeserializeObject<TumblrResponse<BlogPosts>>(content);
                         BlogPosts blogPosts = tumblrResponse.Response;
 
                         totalInBlog = blogPosts.Blog.Posts;

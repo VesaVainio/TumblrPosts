@@ -36,6 +36,7 @@ namespace Functions
 
             do
             {
+                //TODO: error handling, if there is error from e.g. postsGetter
                 CloudQueueMessage message = await blogToFetchQueueAdapter.GetNextMessage();
                 if (message == null)
                 {
