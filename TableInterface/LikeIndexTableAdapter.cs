@@ -42,6 +42,17 @@ namespace TableInterface
             return entities;
         }
 
+        public List<LikeIndexEntity> GetNewerThan(string blogName, long timestamp)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);
+            string rkFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, timestamp.ToString());
+            string combinedFilter = TableQuery.CombineFilters(pkFilter, TableOperators.And, rkFilter);
+            TableQuery<LikeIndexEntity> query = new TableQuery<LikeIndexEntity>().Where(combinedFilter);
+            IEnumerable<LikeIndexEntity> result = likeIndexTable.ExecuteQuery(query);
+            List<LikeIndexEntity> entities = result.ToList();
+            return entities;
+        }
+
         public long GetNewestLikedTimestamp(string blogName)
         {
             string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogName);

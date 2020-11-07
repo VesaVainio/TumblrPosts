@@ -32,6 +32,11 @@ namespace Functions
 
             long newestLikedTimestamp = likeIndexTableAdapter.GetNewestLikedTimestamp(blogname);
 
+            if (newestLikedTimestamp > 0)
+            {
+                log.Info($"Getting likes newer than timestamp {newestLikedTimestamp}");
+            }
+
             Likes likes = null;
             long totalCount = 0;
             using (HttpClient httpClient = new HttpClient())

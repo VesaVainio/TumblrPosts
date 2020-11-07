@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -37,7 +38,19 @@ namespace Functions
 
             string blobBaseUrl = ConfigurationManager.AppSettings["BlobBaseUrl"];
 
-            List<LikeIndexEntity> likes = likeIndexTableAdapter.GetAll(blogname);
+            string afterParam = req.GetQueryNameValuePairs().FirstOrDefault(q => q.Key.Equals("after", StringComparison.OrdinalIgnoreCase)).Value;
+
+            List<LikeIndexEntity> likes;
+
+            if (!string.IsNullOrEmpty(afterParam) && long.TryParse(afterParam, out long afterTimestamp))
+            {
+                log.Info($"Getting likes newer than timestamp {afterTimestamp}");
+                likes = likeIndexTableAdapter.GetNewerThan(blogname, afterTimestamp);
+            }
+            else
+            {
+                likes = likeIndexTableAdapter.GetAll(blogname);
+            }
 
             log.Info($"Loaded {likes.Count} posts");
 
