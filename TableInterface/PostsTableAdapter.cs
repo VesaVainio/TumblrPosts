@@ -98,6 +98,15 @@ namespace TableInterface
             return result.ToList();
         }
 
+        public List<PostEntity> GetPostNoteCounts(string blogname)
+        {
+            string pkFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, blogname);
+            TableQuery<PostEntity> query = new TableQuery<PostEntity>().Where(pkFilter)
+                .Select(new List<string> {"RowKey", "NoteCount"});
+            IEnumerable<PostEntity> result = postsTable.ExecuteQuery(query);
+            return result.ToList();
+        }
+
         public List<string> GetAllPartitions()
         {
             TableQuery<DynamicTableEntity> query = new TableQuery<DynamicTableEntity>().Select(PartitionAndRowKey);
