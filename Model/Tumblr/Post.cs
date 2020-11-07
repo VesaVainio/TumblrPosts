@@ -1,7 +1,6 @@
 ﻿using System;
-using Model.Tumblr;
 
-namespace TumblrPics.Model.Tumblr
+namespace Model.Tumblr
 {
     public class Post
     {

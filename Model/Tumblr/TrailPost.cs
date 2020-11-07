@@ -1,4 +1,4 @@
-﻿namespace TumblrPics.Model.Tumblr
+﻿namespace Model.Tumblr
 {
     public class TrailPost
     {

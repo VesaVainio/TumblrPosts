@@ -1,5 +1,5 @@
 ﻿
-namespace TumblrPics.Model.Tumblr
+namespace Model.Tumblr
 {
     public enum PostType
     {

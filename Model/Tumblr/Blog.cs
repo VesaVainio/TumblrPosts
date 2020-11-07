@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TumblrPics.Model.Tumblr
+namespace Model.Tumblr
 {
     public class Blog
     {
