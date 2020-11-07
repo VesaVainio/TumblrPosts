@@ -109,6 +109,7 @@
     <Compile Include="Tumblr\Formatting.cs" />
     <Compile Include="Tumblr\Media.cs" />
     <Compile Include="Tumblr\Player.cs" />
+    <Compile Include="Tumblr\PostConverter.cs" />
     <Compile Include="Tumblr\Poster.cs" />
     <Compile Include="Tumblr\TrailPost.cs" />
     <Compile Include="Tumblr\TrailBlog.cs" />
