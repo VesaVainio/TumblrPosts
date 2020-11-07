@@ -15,7 +15,7 @@ using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
 using MonthIndex = TableInterface.Entities.MonthIndex;
-using Photo = TumblrPics.Model.Tumblr.Photo;
+using Photo = Model.Tumblr.Photo;
 
 namespace Functions
 {

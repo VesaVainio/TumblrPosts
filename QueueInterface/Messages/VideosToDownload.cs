@@ -1,5 +1,5 @@
-﻿using QueueInterface.Messages.Dto;
-using TumblrPics.Model.Tumblr;
+﻿using Model.Tumblr;
+using QueueInterface.Messages.Dto;
 
 namespace QueueInterface.Messages
 {

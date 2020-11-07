@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Tumblr;
 using QueueInterface;
 using TableInterface;
-using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {
@@ -18,8 +18,7 @@ namespace Functions
     {
         [FunctionName("GetLikes")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "getlikes/{blogname}")]
-            HttpRequestMessage req,
-            string blogname, TraceWriter log)
+            HttpRequestMessage req, string blogname, TraceWriter log)
         {
             Startup.Init();
 

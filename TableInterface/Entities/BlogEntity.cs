@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Azure.CosmosDB.Table;
-using TumblrPics.Model.Tumblr;
+using Model.Tumblr;
 
 namespace TableInterface.Entities
 {

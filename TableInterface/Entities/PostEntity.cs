@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.CosmosDB.Table;
 using Newtonsoft.Json;
 using System;
-using TumblrPics.Model.Tumblr;
+using Model.Tumblr;
 
 namespace TableInterface.Entities
 {

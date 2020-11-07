@@ -5,12 +5,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
+using Model.Tumblr;
 using Newtonsoft.Json;
 using QueueInterface;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {

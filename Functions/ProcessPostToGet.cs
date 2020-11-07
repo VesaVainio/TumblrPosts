@@ -8,8 +8,8 @@ using System;
 using System.Configuration;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Model.Tumblr;
 using TableInterface;
-using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {

@@ -4,7 +4,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using HtmlAgilityPack;
-using Microsoft.Azure.WebJobs.Host;
 using Model.Site;
 using Newtonsoft.Json;
 using TableInterface;
@@ -15,7 +14,7 @@ namespace Functions
 {
     public static class BodyUrlModifier
     {
-        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, List<Photo> sitePhotos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos)
+        public static string ModifyUrls(string sourceBlog, string body, PhotoIndexTableAdapter photoIndexTableAdapter, List<Photo> sitePhotos, out List<Model.Tumblr.Photo> extractedPhotos)
         {
             extractedPhotos = null;
             

@@ -1,4 +1,4 @@
-﻿using TumblrPics.Model.Tumblr;
+﻿using Model.Tumblr;
 
 namespace QueueInterface.Messages
 {

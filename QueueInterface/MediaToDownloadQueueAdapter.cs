@@ -3,10 +3,10 @@ using System.Linq;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Model.Tumblr;
 using Newtonsoft.Json;
 using QueueInterface.Messages;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 
 namespace QueueInterface
 {

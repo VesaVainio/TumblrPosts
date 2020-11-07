@@ -9,10 +9,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Model.Tumblr;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {

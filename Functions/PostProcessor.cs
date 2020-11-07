@@ -12,7 +12,6 @@ using QueueInterface.Messages.Dto;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 
 namespace Functions
 {

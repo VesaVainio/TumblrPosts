@@ -6,8 +6,8 @@ using QueueInterface.Messages;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using Model.Tumblr;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 
 namespace QueueInterface
 {

@@ -8,13 +8,13 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Model;
 using Model.Site;
+using Model.Tumblr;
 using Newtonsoft.Json;
 using QueueInterface;
 using QueueInterface.Messages;
 using TableInterface;
 using TableInterface.Entities;
 using TumblrPics.Model;
-using TumblrPics.Model.Tumblr;
 using Photo = Model.Site.Photo;
 
 namespace Functions
@@ -62,7 +62,7 @@ namespace Functions
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
 
-                    foreach (TumblrPics.Model.Tumblr.Photo photo in photosToDownload.Photos)
+                    foreach (Model.Tumblr.Photo photo in photosToDownload.Photos)
                     {
                         bool isOriginal = true;
                         Photo sitePhoto = null;
@@ -111,7 +111,7 @@ namespace Functions
                     }
                 }
 
-                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, sitePhotos, out List<TumblrPics.Model.Tumblr.Photo> extractedPhotos);
+                string modifiedBody = BodyUrlModifier.ModifyUrls(sourceBlog, photosToDownload.Body, photoIndexTableAdapter, sitePhotos, out List<Model.Tumblr.Photo> extractedPhotos);
 
                 if (extractedPhotos != null)
                 {
